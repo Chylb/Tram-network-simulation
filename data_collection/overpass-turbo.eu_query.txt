@@ -1,0 +1,17 @@
+<osm-script output="json" timeout="25">
+  <union>
+    <query type="node">
+      <has-kv k="railway" v="tram_stop"/>
+      <bbox-query {{bbox}}/>
+      </query>
+    
+    <query type="way">
+      <has-kv k="railway" v="tram"/>
+      <bbox-query {{bbox}}/>
+      </query>
+  </union>
+  <!-- print results -->
+  <print mode="body"/>
+  <recurse type="down"/>
+  <print mode="skeleton" order="quadtile"/>
+</osm-script>
