@@ -1,68 +1,45 @@
 const findPath = require("./graph.js").findPath;
 
 module.exports = {
-    processRoute: function (physicalNetwork, scheduleRoute, start, end) { //this function finds route's path
-        const route = {
-            nodes: [], //list of nodes that the route goes through
-            stops: [], //stop nodes
-            scheduleRoute: scheduleRoute //reference to route data in schedule
-        };
+    createRoutes: function (physicalNetwork, schedule, logicalData) {
+        routeStart = new Map();
+        routeEnd = new Map();
 
-        const initialNode = physicalNetwork.nodes.get(start);
-        //console.log(initialNode);
-        route.nodes.push(initialNode.id);
-        //route.nodes.push(start);
+        routeStart.set("Nowy Bieżanów P+R - Krowodrza Górka", 287586332)
+        routeEnd.set("Nowy Bieżanów P+R - Krowodrza Górka", 257656078)
 
-        let currStop = initialNode;
-        route.stops.push(initialNode.id);
+        routeStart.set("Krowodrza Górka - Nowy Bieżanów P+R", 257655889)
+        routeEnd.set("Krowodrza Górka - Nowy Bieżanów P+R", 623562103)
 
-        for (let i = 1; i < scheduleRoute.stops.length - 1; i++) {
-            const nextStop = scheduleRoute.stops[i].name;
-            const next2Stop = scheduleRoute.stops[i + 1].name;
+        let id = 0;
 
-            let path;
-            const target1 = [...physicalNetwork.stopsIds.get(nextStop)];
-            //console.log(target1);
-            while (target1.length != 0) {
-                const [dis1, path1] = findPath(currStop, target1);
-                const intermediatePlatform = physicalNetwork.nodes.get(path1[0]);
-                //console.log(next2Stop);
-                //console.log(physicalNetwork.stopsIds.get(next2Stop));
-                const [dis2, path2] = findPath(intermediatePlatform, physicalNetwork.stopsIds.get(next2Stop));
+        for (let line of schedule.lines) {
+            dir1Start = routeStart.get(line.direction1.name);
+            dir1End = routeEnd.get(line.direction1.name);
 
-                //console.log(intermediatePlatform);
+            dir2Start = routeStart.get(line.direction2.name);
+            dir2End = routeEnd.get(line.direction2.name);
 
-                const endPlatform = physicalNetwork.nodes.get(path2[0]);
-                const physicalDistance = Math.sqrt((endPlatform.x - intermediatePlatform.x) ** 2 + (endPlatform.y - intermediatePlatform.y) ** 2);
+            let route1;
+            let route2;
 
-                //console.log(endPlatform);
-
-                if (dis2 < 2 * physicalDistance) {
-                    path = path1;
-                    break;
-                }
-                else {
-                    for (let i = target1.length - 1; i != -1; i--) {
-                        const n = target1[i];
-                        if (n == path1[0])
-                            target1.splice(i, 1);
-                    }
-                    //console.log(target1);
-                }
+            if (dir1Start != undefined) {
+                route1 = processRoute(physicalNetwork, line.direction1, dir1Start, dir1End);
+                route1.id = id;
+                id++;
             }
-            route.nodes = path.concat(route.nodes);
-            path.push(currStop.id);
-            currStop = physicalNetwork.nodes.get(path[0]);
+            if (dir2Start != undefined) {
+                route2 = processRoute(physicalNetwork, line.direction2, dir2Start, dir2End);
+                route2.id = id;
+                id++;
+            }
 
-            route.stops.push(currStop.id);
+            if (route1 != undefined)
+                logicalData.routes.push(route1);
+
+            if (route2 != undefined)
+                logicalData.routes.push(route2);
         }
-
-        const [dis, lastPath] = findPath(currStop, [end]);
-        route.nodes = lastPath.concat(route.nodes);
-        route.nodes.reverse();
-        route.stops.push(end);
-
-        return route;
     },
 
     createTrips: function (logicalData) {
@@ -155,3 +132,67 @@ module.exports = {
         }
     }
 };
+
+function processRoute(physicalNetwork, scheduleRoute, start, end) { //this function finds route's path
+    const route = {
+        nodes: [], //list of nodes that the route goes through
+        stops: [], //stop nodes
+        scheduleRoute: scheduleRoute //reference to route data in schedule
+    };
+
+    const initialNode = physicalNetwork.nodes.get(start);
+    //console.log(initialNode);
+    route.nodes.push(initialNode.id);
+    //route.nodes.push(start);
+
+    let currStop = initialNode;
+    route.stops.push(initialNode.id);
+
+    for (let i = 1; i < scheduleRoute.stops.length - 1; i++) {
+        const nextStop = scheduleRoute.stops[i].name;
+        const next2Stop = scheduleRoute.stops[i + 1].name;
+
+        let path;
+        const target1 = [...physicalNetwork.stopsIds.get(nextStop)];
+        //console.log(target1);
+        while (target1.length != 0) {
+            const [dis1, path1] = findPath(currStop, target1);
+            const intermediatePlatform = physicalNetwork.nodes.get(path1[0]);
+            //console.log(next2Stop);
+            //console.log(physicalNetwork.stopsIds.get(next2Stop));
+            const [dis2, path2] = findPath(intermediatePlatform, physicalNetwork.stopsIds.get(next2Stop));
+
+            //console.log(intermediatePlatform);
+
+            const endPlatform = physicalNetwork.nodes.get(path2[0]);
+            const physicalDistance = Math.sqrt((endPlatform.x - intermediatePlatform.x) ** 2 + (endPlatform.y - intermediatePlatform.y) ** 2);
+
+            //console.log(endPlatform);
+
+            if (dis2 < 2 * physicalDistance) {
+                path = path1;
+                break;
+            }
+            else {
+                for (let i = target1.length - 1; i != -1; i--) {
+                    const n = target1[i];
+                    if (n == path1[0])
+                        target1.splice(i, 1);
+                }
+                //console.log(target1);
+            }
+        }
+        route.nodes = path.concat(route.nodes);
+        path.push(currStop.id);
+        currStop = physicalNetwork.nodes.get(path[0]);
+
+        route.stops.push(currStop.id);
+    }
+
+    const [dis, lastPath] = findPath(currStop, [end]);
+    route.nodes = lastPath.concat(route.nodes);
+    route.nodes.reverse();
+    route.stops.push(end);
+
+    return route;
+}

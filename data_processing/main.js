@@ -16,11 +16,16 @@ function main() {
   const physicalNetworkData = processPhysicalNetwork(osm_tram_data);
   const logicalNetworkData = processLogicalNetwork(physicalNetworkData, schedule);
 
+  for (let track of physicalNetworkData.tracks) {
+    track.nodes = track.nodes.map(id => physicalNetworkData.nodes.get(id));
+  }
+
+  Export.shortenIds(physicalNetworkData, logicalNetworkData);
   const network_model = JSON.stringify(Export.makeNetworkModel(physicalNetworkData, logicalNetworkData));
-  //const network_visualization_model = JSON.stringify(Export.processData2(physicalNetworkData, logicalNetworkData));
+  //const network_visualization_model = JSON.stringify(Export.makeNetworkVisualizationModel(physicalNetworkData, logicalNetworkData));
 
   fs.writeFileSync("data/network_model.json", network_model);
-  //fs.writeFileSync("network_visualization_model.json", network_visualization_model);
+  //fs.writeFileSync("data/network_visualization_model.json", network_visualization_model);
 }
 
 main();
@@ -64,8 +69,11 @@ function processPhysicalNetwork(osm_tram_data) {
 
   Fix.fixMissingStops(data, stopsTmp);
 
-  for (let s of stopsTmp)
-    data.stops.push(s);
+  for (let s of stopsTmp) {
+    const node = data.nodes.get(s.id);
+    node.tags = s.tags;
+    data.stops.push(node);
+  }
 
   Fix.fixStopsNames(data);
   Fix.removeBannedNodes(data);
@@ -94,14 +102,15 @@ function processPhysicalNetwork(osm_tram_data) {
     if (n.adjacentNodes.length > 2) {
       data.joints.push(n);
       n.junction = undefined;
-      //n.trafficLight = 0;
     }
 
   Track.removeTrackCrossings(data);
   Track.splitTracksBySpecialNodes(data);
+  //Track.makeOppositeEdgeToBidirectional(data);
 
   Junction.findJunctions(data);
   Junction.generateTrafficLights(data);
+  Junction.manualJunctionAdjustments(data);
 
   return data;
 }
@@ -116,17 +125,7 @@ function processLogicalNetwork(physicalNetwork, raw_schedule) {
 
   Fix.removeFakeRouteStops(schedule);
 
-  //for (let i = 0; i < schedule.lines.length; i++) {
-  for (let i = 0; i < 1; i++) {
-    const route1 = Schedule.processRoute(physicalNetwork, schedule.lines[i].direction1, 213578451, 2419732952);
-    const route2 = Schedule.processRoute(physicalNetwork, schedule.lines[i].direction2, 2419732952, 2426087293);
-    route1.id = 2 * i;
-    route2.id = 2 * i + 1;
-
-    logicalData.routes.push(route1);
-    logicalData.routes.push(route2);
-  }
-
+  Schedule.createRoutes(physicalNetwork, schedule, logicalData);
   Schedule.createTrips(logicalData);
 
   return logicalData;
@@ -164,6 +163,7 @@ function processRawSchedule(rawSchedule) {
       schedule.lines[l].direction2.stops[i].schedule = schedule.lines[l].direction2.stops[i].schedule.slice(0, cutIx);
     }
   }
+
   return schedule;
 }
 

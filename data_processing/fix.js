@@ -25,7 +25,7 @@ module.exports = {
     },
 
     removeBannedNodes: function (data) {
-        const bannedNodes = [3114830183, 213575668, 2163355826, 1571736117]; //they are banned because they cause problems in finding path of line routes //POPRAW ##############################🛠️🛠️🛠️🛠️
+        const bannedNodes = [3114830183, 213575668, 2163355826, 1571736117, 1578667767]; //they are banned because they cause problems in finding path of line routes //POPRAW ##############################🛠️🛠️🛠️🛠️
 
         for (let bannedNodeId of bannedNodes) {
             for (let i = data.tracks.length - 1; i >= 0; i--) { //removing tracks that include banned nodes

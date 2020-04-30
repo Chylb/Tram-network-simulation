@@ -143,20 +143,22 @@ module.exports = {
             if (specialNodesIx.length == 0) continue;
 
             const firstSection = {
+                id: findAvaibleTrackID(data),
                 nodes: track.nodes.slice(0, specialNodesIx[0] + 1),
                 tags: track.tags
             };
+            data.tracks.push(firstSection);
 
             const lastSection = {
+                id: findAvaibleTrackID(data),
                 nodes: track.nodes.slice(specialNodesIx[specialNodesIx.length - 1], track.nodes.length),
                 tags: track.tags
             };
-
-            data.tracks.push(firstSection);
             data.tracks.push(lastSection);
 
             for (let i = 1; i < specialNodesIx.length; i++) {
                 const section = {
+                    id: findAvaibleTrackID(data),
                     nodes: track.nodes.slice(specialNodesIx[i - 1], specialNodesIx[i] + 1),
                     tags: track.tags
                 };
@@ -165,5 +167,28 @@ module.exports = {
 
             data.tracks.splice(j, 1);
         }
+    },
+
+    makeOppositeEdgeToBidirectional: function (data) {
+        for(let i = data.bidirectionalTracks.length - 1; i >= 0; i--) {
+        //for(let track of data.bidirectionalTracks) {
+            const track = data.bidirectionalTracks[i];
+            const opposite = {
+                id: findAvaibleTrackID(data),
+                nodes: track.nodes.reverse(),
+                tags:track.tags
+            }
+            data.tracks.push(opposite);
+            data.bidirectionalTracks.push(opposite);
+        }
     }
 };
+
+function findAvaibleTrackID(data) {
+    let id = 0;
+    const trackIds = data.tracks.map(x => x.id);
+    while (trackIds.includes(id))
+        id++;
+
+    return id;
+}

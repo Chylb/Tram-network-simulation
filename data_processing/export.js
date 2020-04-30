@@ -1,4 +1,31 @@
 module.exports = {
+    shortenIds: function (physicalNetwork, logicalNetwork) {
+
+        for (let route of logicalNetwork.routes) {
+            route.stops = route.stops.map(id => physicalNetwork.nodes.get(id));
+        }
+
+        const idGen = idMaker();
+
+        for (let [id, node] of physicalNetwork.nodes) {
+            node.id = idGen.next().value;
+        }
+
+        for (let track of physicalNetwork.tracks) {
+            track.id = idGen.next().value;
+        }
+
+        for (let route of logicalNetwork.routes) {
+            route.stops = route.stops.map(node => node.id);
+        }
+
+        function* idMaker() {
+            let id = 0;
+            while (true)
+                yield id++;
+        }
+    },
+
     makeNetworkModel: function (physicalNetwork, logicalNetwork) { //transforms data to simulation-friendly tram network model
         const export_data = {
             nodes: [],
@@ -15,15 +42,16 @@ module.exports = {
                     y: node.y,
                     id: node.id
                 };
-                if (node.hasOwnProperty("tags"))
+                if (node.hasOwnProperty("tags")) {
                     export_node.stopName = node.tags.name;
+                }
                 if (node.hasOwnProperty("trafficLight"))
                     export_node.trafficLight = node.trafficLight;
                 export_data.nodes.push(export_node);
             }
             else
                 for (let track of physicalNetwork.tracks)
-                    if (track.nodes[0] == node.id || track.nodes[track.nodes.length - 1] == node.id) {
+                    if (track.nodes[0].id == node.id || track.nodes[track.nodes.length - 1].id == node.id) {
                         export_data.nodes.push({
                             x: node.x,
                             y: node.y,
@@ -34,24 +62,17 @@ module.exports = {
         }
 
         for (let track of physicalNetwork.tracks) {
-            const head = physicalNetwork.nodes.get(track.nodes[track.nodes.length - 1]);
-            const tail = physicalNetwork.nodes.get(track.nodes[0]);
+            const head = track.nodes[track.nodes.length - 1];
+            const tail = track.nodes[0];
+
             const edge = {
+                id: track.id,
                 head: head.id,
                 tail: tail.id,
                 length: Math.sqrt((head.x - tail.x) ** 2 + (head.y - tail.y) ** 2),
                 maxspeed: track.tags.maxspeed
             };
 
-            if (track.tags.oneway == "no") {
-                const edge2 = {
-                    head: tail.id,
-                    tail: head.id,
-                    length: Math.sqrt((head.x - tail.x) ** 2 + (head.y - tail.y) ** 2),
-                    maxspeed: track.tags.maxspeed
-                };
-                export_data.edges.push(edge2);
-            }
             export_data.edges.push(edge);
         }
 
@@ -81,6 +102,5 @@ module.exports = {
 
         return export_data;
     },
-
-    makeNetworkVisualizationModel(physicalNetwork, logicalNetwork) {}
+    makeNetworkVisualizationModel: function (physicalNetwork, logicalNetwork){}
 };
