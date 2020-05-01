@@ -1,18 +1,40 @@
 #include "node.h"
 
-Node::Node(unsigned long int id) {
+Node::Node(int id, bool isTrafficLight, bool isTramStop)
+{
 	m_id = id;
+	m_isTrafficLight = isTrafficLight;
+	m_isTramStop = isTramStop;
 }
-void Node::addOutgoingEdge(Edge* edge)
+
+Node::Node(int id)
+{
+	m_id = id;
+	m_isTrafficLight = false;
+	m_isTramStop = false;
+}
+
+void Node::addOutgoingEdge(Edge *edge)
 {
 	m_outgoingEdges.emplace_back(edge);
 }
 
-void Node::addIncomingEdge(Edge* edge)
+void Node::addIncomingEdge(Edge *edge)
 {
 	m_incomingEdges.emplace_back(edge);
 }
 
-unsigned long int Node::getId() {
+bool Node::isTrafficLight()
+{
+	return m_isTrafficLight;
+}
+
+bool Node::isTramStop()
+{
+	return m_isTramStop;
+}
+
+int Node::getId()
+{
 	return m_id;
 }

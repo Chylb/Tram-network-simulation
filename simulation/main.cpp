@@ -11,8 +11,6 @@ json networkModel;
 
 int main()
 {
-	std::cout << "Start\n";
-
 	std::ifstream fstream("./data/network_model.json");
 	fstream >> networkModel;
 	fstream.close();
@@ -20,7 +18,9 @@ int main()
 	Simulation *simulation = new Simulation(networkModel);
 	simulation->run();
 
-	std::cout << "\n Koniec";
+	std::ofstream ofstream("./data/results.json");
+	ofstream << simulation->getResults();
+	ofstream.close();
 
 	return 0;
 }

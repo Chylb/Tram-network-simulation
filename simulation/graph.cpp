@@ -3,7 +3,7 @@
 #include <queue>
 #include <unordered_map>
 
-std::list<Edge *> Graph::findPath(Node *source, Node *target)
+std::pair<std::list<Edge *>, std::list<TrafficLight *>> Graph::findPath(Node *source, Node *target)
 {
     typedef std::pair<Node *, float> nodeDistancePair;
 
@@ -44,14 +44,19 @@ std::list<Edge *> Graph::findPath(Node *source, Node *target)
         queue.pop();
     }
 
+    std::list<TrafficLight *> trafficLights;
     std::list<Edge *> path;
+
     auto edge = previous[target];
     path.push_front(edge);
     while (edge->m_tail != source)
     {
         edge = previous[edge->m_tail];
         path.push_front(edge);
+
+        if (edge->m_head->isTrafficLight())
+            trafficLights.push_front((TrafficLight *)edge->m_head);
     }
 
-    return path;
+    return std::make_pair(path, trafficLights);
 }
