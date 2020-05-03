@@ -11,10 +11,6 @@ module.exports = {
             node.id = idGen.next().value;
         }
 
-        for (let track of physicalNetwork.tracks) {
-            track.id = idGen.next().value;
-        }
-
         for (let route of logicalNetwork.routes) {
             route.stops = route.stops.map(node => node.id);
         }
@@ -36,7 +32,7 @@ module.exports = {
         };
 
         for (let [id, node] of physicalNetwork.nodes) {
-            if (node.hasOwnProperty("tags") || node.hasOwnProperty("trafficLight")) {
+            if (node.special) {
                 const export_node = {
                     x: node.x,
                     y: node.y,
@@ -49,16 +45,6 @@ module.exports = {
                     export_node.trafficLight = node.trafficLight;
                 export_data.nodes.push(export_node);
             }
-            else
-                for (let track of physicalNetwork.tracks)
-                    if (track.nodes[0].id == node.id || track.nodes[track.nodes.length - 1].id == node.id) {
-                        export_data.nodes.push({
-                            x: node.x,
-                            y: node.y,
-                            id: node.id
-                        });
-                        break;
-                    }
         }
 
         for (let track of physicalNetwork.tracks) {
@@ -69,7 +55,7 @@ module.exports = {
                 id: track.id,
                 head: head.id,
                 tail: tail.id,
-                length: Math.sqrt((head.x - tail.x) ** 2 + (head.y - tail.y) ** 2),
+                length: track.length,
                 maxspeed: track.tags.maxspeed
             };
 
@@ -102,5 +88,47 @@ module.exports = {
 
         return export_data;
     },
-    makeNetworkVisualizationModel: function (physicalNetwork, logicalNetwork){}
+
+    makeNetworkVisualizationModel: function (physicalNetwork, logicalNetwork) {
+        const export_data = {
+            nodes: [],
+            edges: [],
+            junctions: []
+        };
+
+        for (let [id, node] of physicalNetwork.nodes) {
+            const export_node = {
+                x: node.x,
+                y: node.y,
+                id: node.id
+            };
+            if (node.hasOwnProperty("tags")) {
+                export_node.stopName = node.tags.name;
+            }
+            if (node.hasOwnProperty("trafficLight"))
+                export_node.trafficLight = node.trafficLight;
+
+            export_data.nodes.push(export_node);
+        }
+
+        for (let track of physicalNetwork.tracks) {
+            const edge = {
+                id: track.id,
+                nodes: track.nodes.map(node => node.id),
+                length: track.length,
+                maxspeed: track.tags.maxspeed
+            };
+
+            export_data.edges.push(edge);
+        }
+
+        for (let junction of physicalNetwork.junctions) {
+            const export_junction = {
+                trafficLights: junction.trafficLights.map(x => x.id)
+            };
+            export_data.junctions.push(export_junction);
+        }
+
+        return export_data;
+    }
 };

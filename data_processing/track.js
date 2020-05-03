@@ -1,3 +1,5 @@
+const findPath = require("./graph.js").findPath;
+
 module.exports = {
     removeTrackCrossings: function (data) { //splits nodes with 4 adjacent nodes to 2 nodes with 2 adjacent nodes
         for (let ji = data.joints.length - 1; ji >= 0; ji--) {
@@ -48,6 +50,7 @@ module.exports = {
                 }
             }
             const path1 = paths[minIx];
+
             paths.splice(minIx, 1);
 
             min = 1;
@@ -60,36 +63,22 @@ module.exports = {
             const path2 = paths[minIx];
 
             const j1 = {
-                type: "node",
-                id: 0,
+                id: findAvaibleNodeID(data),
                 x: j.x,
                 y: j.y,
                 adjacentNodes: [j.adjacentNodes[path1.ix1], j.adjacentNodes[path1.ix2]],
                 accessibleNodes: [j.adjacentNodes[path1.accessible]]
             }
+            data.nodes.set(j1.id, j1);
 
             const j2 = {
-                type: "node",
-                id: 0,
+                id: findAvaibleNodeID(data),
                 x: j.x,
                 y: j.y,
                 adjacentNodes: [j.adjacentNodes[path2.ix1], j.adjacentNodes[path2.ix2]],
                 accessibleNodes: [j.adjacentNodes[path2.accessible]]
             }
-
-            j.j1 = j1;
-            j.j2 = j2;
-
-            let id = 0;
-            while (data.nodes.get(id) != undefined)
-                id++;
-            j1.id = id;
-            data.nodes.set(id, j1);
-
-            while (data.nodes.get(id) != undefined)
-                id++;
-            j2.id = id;
-            data.nodes.set(id, j2);
+            data.nodes.set(j2.id, j2);                  
 
             for (let adj of j.adjacentNodes) {
                 for (let k = 0; k < adj.accessibleNodes.length; k++) {
@@ -116,78 +105,126 @@ module.exports = {
                     }
                 }
             }
-            //data.nodes.delete(j.id);
+            data.nodes.delete(j.id);
             data.joints.splice(ji, 1);
         }
     },
 
-    splitTracksBySpecialNodes: function (data) { //no track should have special nodes in the middle part. Special nodes i.e. track switches, traffic lights, stops.
-        const switchesIds = data.joints.map(x => x.id);
-        const stopsIds = data.stops.map(x => x.id);
+    generateOppositeEdgesToBidirectionalTracks: function (data) {
+        const bidirectionalTracks = [];
+        bidirectionalTracks.push({
+            nodes: [1770978486, ...findPath(data.nodes.get(1770978486), [213578407])[1].reverse()],
+            in1: 4556178680,
+            out1: 1770978488,
+            in2: 1770978489,
+            out2: 4556178677
+        });
 
-        const trafficLightsIds = [];
-        for (let junction of data.junctions) {
-            const junctionTrafficLightsIds = junction.trafficLights.map(x => x.id);
-            trafficLightsIds = [...trafficLightsIds, ...junctionTrafficLightsIds];
-        }
+        bidirectionalTracks.push({
+            nodes: [213578409, ...findPath(data.nodes.get(213578409), [1770978496])[1].reverse()],
+            in1: 4556178684,
+            out1: 1770978500,
+            in2: 1770978502,
+            out2: 4556178678
+        });
 
-        const specialNodesIds = [...switchesIds, ...stopsIds, ...trafficLightsIds];
+        for (let biTrack of bidirectionalTracks) {
+            biTrack.nodes = biTrack.nodes.map(id => data.nodes.get(id));
+            biTrack.in1 = data.nodes.get(biTrack.in1);
+            biTrack.out1 = data.nodes.get(biTrack.out1);
+            biTrack.in2 = data.nodes.get(biTrack.in2);
+            biTrack.out2 = data.nodes.get(biTrack.out2);
 
-        for (let j = data.tracks.length - 1; j >= 0; j--) {
-            const track = data.tracks[j];
-            const specialNodesIx = [];
-            for (let i = 1; i < track.nodes.length - 1; i++)
-                if (specialNodesIds.includes(track.nodes[i]))
-                    specialNodesIx.push(i);
-
-            if (specialNodesIx.length == 0) continue;
-
-            const firstSection = {
-                id: findAvaibleTrackID(data),
-                nodes: track.nodes.slice(0, specialNodesIx[0] + 1),
-                tags: track.tags
-            };
-            data.tracks.push(firstSection);
-
-            const lastSection = {
-                id: findAvaibleTrackID(data),
-                nodes: track.nodes.slice(specialNodesIx[specialNodesIx.length - 1], track.nodes.length),
-                tags: track.tags
-            };
-            data.tracks.push(lastSection);
-
-            for (let i = 1; i < specialNodesIx.length; i++) {
-                const section = {
-                    id: findAvaibleTrackID(data),
-                    nodes: track.nodes.slice(specialNodesIx[i - 1], specialNodesIx[i] + 1),
-                    tags: track.tags
-                };
-                data.tracks.push(section);
+            biTrack.in1.accessibleNodes = [biTrack.nodes[0]];
+            for (let i = 0; i < biTrack.nodes.length - 1; i++) {
+                const node = biTrack.nodes[i];
+                const nextNode = biTrack.nodes[i + 1];
+                node.accessibleNodes = [nextNode];
             }
+            biTrack.nodes[biTrack.nodes.length - 1].accessibleNodes = [biTrack.out1];
 
-            data.tracks.splice(j, 1);
+            let oppositeEdge = [];
+            for (let i = 0; i < biTrack.nodes.length; i++) {
+                const node = biTrack.nodes[i];
+                const oppositeNode = {
+                    id: findAvaibleNodeID(data),
+                    x: node.x,
+                    y: node.y,
+                    accessibleNodes: [],
+                    adjacentNodes: node.adjacentNodes
+                }
+                data.nodes.set(oppositeNode.id, oppositeNode);
+                oppositeEdge.push(oppositeNode);
+            }
+            oppositeEdge = oppositeEdge.reverse();
+
+            biTrack.in2.accessibleNodes = [oppositeEdge[0]];
+            for (let i = 0; i < biTrack.nodes.length - 1; i++) {
+                const node = oppositeEdge[i];
+                const nextNode = oppositeEdge[i + 1];
+                node.accessibleNodes = [nextNode];
+            }
+            oppositeEdge[oppositeEdge.length - 1].accessibleNodes = [biTrack.out2];
         }
     },
 
-    makeOppositeEdgeToBidirectional: function (data) {
-        for(let i = data.bidirectionalTracks.length - 1; i >= 0; i--) {
-        //for(let track of data.bidirectionalTracks) {
-            const track = data.bidirectionalTracks[i];
-            const opposite = {
-                id: findAvaibleTrackID(data),
-                nodes: track.nodes.reverse(),
-                tags:track.tags
+    regenerateTracks: function (data) { //generates tracks based on graph 
+        const specialNodes = [];
+
+        for (let [id, node] of data.nodes) {
+            node.special = false;
+
+            if (node.adjacentNodes.length != 2 ||
+                node.accessibleNodes.length != 1 ||
+                node.hasOwnProperty("tags") ||
+                node.hasOwnProperty("trafficLight")
+            ) {
+                node.special = true;
+                specialNodes.push(node);
             }
-            data.tracks.push(opposite);
-            data.bidirectionalTracks.push(opposite);
         }
+
+        const newTracks = [];
+        let id = 0;
+
+        for (firstNode of specialNodes) {
+            for (let secondNode of firstNode.accessibleNodes) {
+                const track = {
+                    id: id,
+                    nodes: [firstNode, secondNode],
+                    tags: {
+                        maxspeed: 50
+                    }
+                };
+
+                let node = secondNode;
+
+                while (!node.special) {
+                    node = node.accessibleNodes[0];
+                    track.nodes.push(node);
+                }
+
+                let length = 0;
+                let prevNode = track.nodes[0];
+                for(let i = 1; i < track.nodes.length; i++) {
+                    const node = track.nodes[i];
+                    length += Math.sqrt( (node.x - prevNode.x)**2 + (node.y - prevNode.y)**2);
+                    prevNode = node;
+                }
+                track.length = length;
+
+                newTracks.push(track);
+                ++id;
+            }
+        }
+
+        data.tracks = newTracks;
     }
 };
 
-function findAvaibleTrackID(data) {
+function findAvaibleNodeID(data) {
     let id = 0;
-    const trackIds = data.tracks.map(x => x.id);
-    while (trackIds.includes(id))
+    while (data.nodes.get(id) != undefined)
         id++;
 
     return id;

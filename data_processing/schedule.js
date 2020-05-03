@@ -5,11 +5,15 @@ module.exports = {
         routeStart = new Map();
         routeEnd = new Map();
 
-        routeStart.set("Nowy Bieżanów P+R - Krowodrza Górka", 287586332)
-        routeEnd.set("Nowy Bieżanów P+R - Krowodrza Górka", 257656078)
+        routeStart.set("Wzgórza Krzesławickie - Salwator", 213578451);
+        routeEnd.set("Wzgórza Krzesławickie - Salwator", 2419732952);
+        routeStart.set("Salwator - Wzgórza Krzesławickie", 2419732952);
+        routeEnd.set("Salwator - Wzgórza Krzesławickie", 2426087293);
 
-        routeStart.set("Krowodrza Górka - Nowy Bieżanów P+R", 257655889)
-        routeEnd.set("Krowodrza Górka - Nowy Bieżanów P+R", 623562103)
+        routeStart.set("Nowy Bieżanów P+R - Krowodrza Górka", 287586332);
+        routeEnd.set("Nowy Bieżanów P+R - Krowodrza Górka", 257656078);
+        routeStart.set("Krowodrza Górka - Nowy Bieżanów P+R", 257655889);
+        routeEnd.set("Krowodrza Górka - Nowy Bieżanów P+R", 623562103);
 
         let id = 0;
 
@@ -27,7 +31,7 @@ module.exports = {
                 route1 = processRoute(physicalNetwork, line.direction1, dir1Start, dir1End);
                 route1.id = id;
                 id++;
-            }
+            } 
             if (dir2Start != undefined) {
                 route2 = processRoute(physicalNetwork, line.direction2, dir2Start, dir2End);
                 route2.id = id;

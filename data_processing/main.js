@@ -16,16 +16,12 @@ function main() {
   const physicalNetworkData = processPhysicalNetwork(osm_tram_data);
   const logicalNetworkData = processLogicalNetwork(physicalNetworkData, schedule);
 
-  for (let track of physicalNetworkData.tracks) {
-    track.nodes = track.nodes.map(id => physicalNetworkData.nodes.get(id));
-  }
-
   Export.shortenIds(physicalNetworkData, logicalNetworkData);
   const network_model = JSON.stringify(Export.makeNetworkModel(physicalNetworkData, logicalNetworkData));
-  //const network_visualization_model = JSON.stringify(Export.makeNetworkVisualizationModel(physicalNetworkData, logicalNetworkData));
+  const network_visualization_model = JSON.stringify(Export.makeNetworkVisualizationModel(physicalNetworkData, logicalNetworkData));
 
   fs.writeFileSync("data/network_model.json", network_model);
-  //fs.writeFileSync("data/network_visualization_model.json", network_visualization_model);
+  fs.writeFileSync("data/network_visualization_model.json", network_visualization_model);
 }
 
 main();
@@ -36,7 +32,6 @@ function processPhysicalNetwork(osm_tram_data) {
     stops: [],
     stopsIds: new Map(),
     tracks: [],
-    bidirectionalTracks: [],
     joints: [],
     junctions: []
   };
@@ -90,13 +85,14 @@ function processPhysicalNetwork(osm_tram_data) {
       data.stopsIds.set(s.tags.name, currIds);
     }
   }
-
-  for (let track of data.tracks)
-    if (track.tags.oneway == "no")
-      data.bidirectionalTracks.push(track);
+  
+  for(let track of data.tracks) {
+    track.nodes = track.nodes.map(id => data.nodes.get(id));
+  }
 
   Graph.findAdjacentNodes(data);
   Graph.findSuccessorNodes(data);
+  Graph.manualSuccessorNodesAdjustments(data);
 
   for (let [id, n] of data.nodes)
     if (n.adjacentNodes.length > 2) {
@@ -105,12 +101,13 @@ function processPhysicalNetwork(osm_tram_data) {
     }
 
   Track.removeTrackCrossings(data);
-  Track.splitTracksBySpecialNodes(data);
-  //Track.makeOppositeEdgeToBidirectional(data);
+  Track.generateOppositeEdgesToBidirectionalTracks(data);
 
   Junction.findJunctions(data);
   Junction.generateTrafficLights(data);
   Junction.manualJunctionAdjustments(data);
+
+  Track.regenerateTracks(data);
 
   return data;
 }
