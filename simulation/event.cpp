@@ -40,6 +40,7 @@ void EventTramDeploy::processEvent()
 {
 	m_simulation->addTram(m_tram);
 	m_firstEdge->addTram(m_tram);
+	m_tram->addHistoryRow(m_time);
 
 	addNextEvent();
 }

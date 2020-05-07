@@ -45,6 +45,12 @@ Event *Tram::getNextEvent(float time)
         eventCause = tram;
         nearestEventCausePosition = nextTramPosition;
         eventCauseNode = nullptr;
+
+        if (nextTramPosition - m_position - stoppingDistance() < -c_length + 1.0)
+        {
+            auto tramAhead = getTramAhead(INFINITY);
+            throw TramCollisionException(this, tramAhead);
+        }
     }
 
     float vMaxPosition = INFINITY;
@@ -291,7 +297,6 @@ float Tram::getNextTramPosition(float limit)
         return tramAhead->getPosition();
     else
     {
-
         float totalLength = m_currentEdge->getLength();
         auto it = m_edgesToVisit.begin();
 
@@ -308,6 +313,32 @@ float Tram::getNextTramPosition(float limit)
         }
         else
             return INFINITY;
+    }
+}
+
+Tram *Tram::getTramAhead(float limit)
+{
+    Tram *tramAhead = m_currentEdge->getTramAhead(this);
+    if (tramAhead != nullptr)
+        return tramAhead;
+    else
+    {
+        float totalLength = m_currentEdge->getLength();
+        auto it = m_edgesToVisit.begin();
+
+        while (it != m_edgesToVisit.end() && (*it)->getTrams().size() == 0 && totalLength < limit + c_length + 1.0)
+        {
+            totalLength += (*it)->getLength();
+            ++it;
+        }
+
+        if (it != m_edgesToVisit.end() && (*it)->getTrams().size() > 0)
+        {
+            auto edge = (*it);
+            return (*it)->getTrams().front();
+        }
+        else
+            return nullptr;
     }
 }
 
@@ -453,6 +484,10 @@ void Tram::updateStatisticsMoving(float time)
 }
 
 //////////////////////////////////////////////////////////////
+int Tram::getId()
+{
+    return m_id;
+}
 
 float Tram::getPosition()
 {
@@ -544,4 +579,11 @@ json Tram::getHistory()
     history["edge"] = m_edgeHistory;
 
     return history;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+TramCollisionException::TramCollisionException(Tram *tram, Tram* tramAhead)
+{
+    m_msg = "Tram collision exception. Tram " + std::to_string(tram->getId()) + " hit into " + std::to_string(tramAhead->getId()) + ".";
 }

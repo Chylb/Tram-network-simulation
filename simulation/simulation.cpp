@@ -150,18 +150,24 @@ void Simulation::run()
 		m_eventQueue.pop();
 
 		time = event->m_time;
-
-		for (auto tram : m_trams)
-			tram->updateStatistics(time);
-
 		//std::cout << time << std::endl;
 
-		if (time > 40000)
+		for (auto tram : m_trams)
 		{
+			tram->updateStatistics(time);
+		}
+
+		try
+		{
+			event->processEvent();
+		}
+		catch (const std::exception &exc)
+		{
+			std::cout << "Exception occured at " << time << "." << std::endl;
+			std::cerr << exc.what() << std::endl;
 			return;
 		}
 
-		event->processEvent();
 		delete event;
 	}
 }

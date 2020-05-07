@@ -22,11 +22,13 @@ public:
 
 	void setSpeed(float speed);
 
+	int getId();
 	float getPosition();
 	float getMaxSpeed();
 	Edge *getCurrentEdge();
 	std::list<Node *> getStopsToVisit();
 	float stoppingDistance();
+	Tram* getTramAhead(float limit);
 
 	enum State
 	{
@@ -98,4 +100,16 @@ private:
 	std::list<float> m_timeHistory;
 	std::list<float> m_speedHistory;
 	std::list<int> m_edgeHistory;
+};
+
+struct TramCollisionException : public std::exception
+{
+	std::string m_msg;
+
+	TramCollisionException(Tram *tram, Tram* tramAhead);
+
+	const char *what() const throw()
+	{
+		return m_msg.c_str();
+	}
 };
