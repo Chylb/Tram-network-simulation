@@ -71,9 +71,9 @@ function processPhysicalNetwork(osm_tram_data) {
   }
 
   Fix.fixStopsNames(data);
-  Fix.removeBannedNodes(data);
   Fix.fixWaysDirections(data);
   Fix.fixMissingMaxspeed(data);
+  Fix.removeBannedNodes(data);
 
   for (let s of data.stops) {
     const currIds = data.stopsIds.get(s.tags.name);
@@ -93,6 +93,8 @@ function processPhysicalNetwork(osm_tram_data) {
   Graph.findAdjacentNodes(data);
   Graph.findSuccessorNodes(data);
   Graph.manualSuccessorNodesAdjustments(data);
+
+  Fix.removeFloatingIslands(data);
 
   for (let [id, n] of data.nodes)
     if (n.adjacentNodes.length > 2) {

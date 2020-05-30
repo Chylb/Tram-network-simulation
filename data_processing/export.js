@@ -6,7 +6,7 @@ module.exports = {
         }
 
         const idGen = idMaker();
-
+        
         for (let [id, node] of physicalNetwork.nodes) {
             node.id = idGen.next().value;
         }
@@ -88,7 +88,7 @@ module.exports = {
 
         return export_data;
     },
-
+    
     makeNetworkVisualizationModel: function (physicalNetwork, logicalNetwork) {
         const export_data = {
             nodes: [],
@@ -112,6 +112,9 @@ module.exports = {
         }
 
         for (let track of physicalNetwork.tracks) {
+            const head = track.nodes[track.nodes.length - 1];
+            const tail = track.nodes[0];
+
             const edge = {
                 id: track.id,
                 nodes: track.nodes.map(node => node.id),

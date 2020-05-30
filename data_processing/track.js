@@ -171,13 +171,22 @@ module.exports = {
     regenerateTracks: function (data) { //generates tracks based on graph 
         const specialNodes = [];
 
+        //specialNodes.push(data.nodes.get(2384741817));
+
+        data.nodes.get(2384741817).special = true;
+
+        data.nodes.get(2163355821).special = true;
+        data.nodes.get(3161355030).special = true;
+
         for (let [id, node] of data.nodes) {
-            node.special = false;
+            if(!node.hasOwnProperty("special"))
+                node.special = false;
 
             if (node.adjacentNodes.length != 2 ||
                 node.accessibleNodes.length != 1 ||
                 node.hasOwnProperty("tags") ||
-                node.hasOwnProperty("trafficLight")
+                node.hasOwnProperty("trafficLight") ||
+                node.special
             ) {
                 node.special = true;
                 specialNodes.push(node);

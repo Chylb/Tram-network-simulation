@@ -118,6 +118,9 @@ module.exports = {
                 trip.end = lastStopTime;
                 trip.duration = trip.end - trip.start;
 
+                if(trip.times.includes(-1))
+                    continue;
+
                 logicalData.trips.push(trip);
             }
 
