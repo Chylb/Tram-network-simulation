@@ -1,7 +1,7 @@
 const findPath = require("./graph.js").findPath;
 
 module.exports = {
-    createRoutes: function (physicalNetwork, schedule, logicalData) {
+    createRoutes: function (physicalNetwork, schedule, logicalNetwork) {
         routeStart = new Map();
         routeEnd = new Map();
 
@@ -31,7 +31,7 @@ module.exports = {
                 route1 = processRoute(physicalNetwork, line.direction1, dir1Start, dir1End);
                 route1.id = id;
                 id++;
-            } 
+            }
             if (dir2Start != undefined) {
                 route2 = processRoute(physicalNetwork, line.direction2, dir2Start, dir2End);
                 route2.id = id;
@@ -39,15 +39,15 @@ module.exports = {
             }
 
             if (route1 != undefined)
-                logicalData.routes.push(route1);
+                logicalNetwork.routes.push(route1);
 
             if (route2 != undefined)
-                logicalData.routes.push(route2);
+                logicalNetwork.routes.push(route2);
         }
     },
 
-    createTrips: function (logicalData) {
-        for (let route of logicalData.routes) {
+    createTrips: function (logicalNetwork) {
+        for (let route of logicalNetwork.routes) {
             const times = [];
 
             for (let i = 0; i < route.scheduleRoute.stops.length; i++) {
@@ -118,10 +118,10 @@ module.exports = {
                 trip.end = lastStopTime;
                 trip.duration = trip.end - trip.start;
 
-                if(trip.times.includes(-1))
+                if (trip.times.includes(-1))
                     continue;
 
-                logicalData.trips.push(trip);
+                logicalNetwork.trips.push(trip);
             }
 
             let error = false;
@@ -140,17 +140,15 @@ module.exports = {
     }
 };
 
-function processRoute(physicalNetwork, scheduleRoute, start, end) { //this function finds route's path
+function processRoute(physicalNetwork, scheduleRoute, startNodeId, endNodeId) { //finds route's path
     const route = {
         nodes: [], //list of nodes that the route goes through
         stops: [], //stop nodes
         scheduleRoute: scheduleRoute //reference to route data in schedule
     };
 
-    const initialNode = physicalNetwork.nodes.get(start);
-    //console.log(initialNode);
+    const initialNode = physicalNetwork.nodes.get(startNodeId);
     route.nodes.push(initialNode.id);
-    //route.nodes.push(start);
 
     let currStop = initialNode;
     route.stops.push(initialNode.id);
@@ -161,20 +159,15 @@ function processRoute(physicalNetwork, scheduleRoute, start, end) { //this funct
 
         let path;
         const target1 = [...physicalNetwork.stopsIds.get(nextStop)];
-        //console.log(target1);
+
         while (target1.length != 0) {
             const [dis1, path1] = findPath(currStop, target1);
             const intermediatePlatform = physicalNetwork.nodes.get(path1[0]);
-            //console.log(next2Stop);
-            //console.log(physicalNetwork.stopsIds.get(next2Stop));
-            const [dis2, path2] = findPath(intermediatePlatform, physicalNetwork.stopsIds.get(next2Stop));
 
-            //console.log(intermediatePlatform);
+            const [dis2, path2] = findPath(intermediatePlatform, physicalNetwork.stopsIds.get(next2Stop));
 
             const endPlatform = physicalNetwork.nodes.get(path2[0]);
             const physicalDistance = Math.sqrt((endPlatform.x - intermediatePlatform.x) ** 2 + (endPlatform.y - intermediatePlatform.y) ** 2);
-
-            //console.log(endPlatform);
 
             if (dis2 < 2 * physicalDistance) {
                 path = path1;
@@ -186,7 +179,6 @@ function processRoute(physicalNetwork, scheduleRoute, start, end) { //this funct
                     if (n == path1[0])
                         target1.splice(i, 1);
                 }
-                //console.log(target1);
             }
         }
         route.nodes = path.concat(route.nodes);
@@ -196,10 +188,10 @@ function processRoute(physicalNetwork, scheduleRoute, start, end) { //this funct
         route.stops.push(currStop.id);
     }
 
-    const [dis, lastPath] = findPath(currStop, [end]);
+    const [dis, lastPath] = findPath(currStop, [endNodeId]);
     route.nodes = lastPath.concat(route.nodes);
     route.nodes.reverse();
-    route.stops.push(end);
+    route.stops.push(endNodeId);
 
     return route;
 }

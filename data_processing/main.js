@@ -13,12 +13,12 @@ function main() {
   const osm_tram_data = JSON.parse(fs.readFileSync("data/osm_tram_data.json"));
   const schedule = JSON.parse(fs.readFileSync("data/schedule.json"));
 
-  const physicalNetworkData = processPhysicalNetwork(osm_tram_data);
-  const logicalNetworkData = processLogicalNetwork(physicalNetworkData, schedule);
+  const physicalNetwork = processPhysicalNetwork(osm_tram_data);
+  const logicalNetwork = processLogicalNetwork(physicalNetwork, schedule);
 
-  Export.shortenIds(physicalNetworkData, logicalNetworkData);
-  const network_model = JSON.stringify(Export.makeNetworkModel(physicalNetworkData, logicalNetworkData));
-  const network_visualization_model = JSON.stringify(Export.makeNetworkVisualizationModel(physicalNetworkData, logicalNetworkData));
+  Export.shortenIds(physicalNetwork, logicalNetwork);
+  const network_model = JSON.stringify(Export.makeNetworkModel(physicalNetwork, logicalNetwork));
+  const network_visualization_model = JSON.stringify(Export.makeNetworkVisualizationModel(physicalNetwork, logicalNetwork));
 
   fs.writeFileSync("data/network_model.json", network_model);
   fs.writeFileSync("data/network_visualization_model.json", network_visualization_model);
@@ -26,11 +26,11 @@ function main() {
 
 main();
 
-function processPhysicalNetwork(osm_tram_data) {
-  const data = {
+function processPhysicalNetwork(osm_tram_data) { //creates physical network
+  const pn = { //physical network
     nodes: new Map(),
     stops: [],
-    stopsIds: new Map(),
+    stopsIds: new Map(), //stop name => stop ids
     tracks: [],
     joints: [],
     junctions: []
@@ -51,7 +51,7 @@ function processPhysicalNetwork(osm_tram_data) {
       e.x = R * Math.cos(e.lat / 180 * Math.PI) * Math.sin(relLon);
       e.adjacentNodes = [];
       e.accessibleNodes = [];
-      data.nodes.set(e.id, e);
+      pn.nodes.set(e.id, e);
 
       if (e.hasOwnProperty('tags'))
         if (e.tags.railway == 'tram_stop')
@@ -59,78 +59,78 @@ function processPhysicalNetwork(osm_tram_data) {
     }
     else if (e.type = 'way')
       if (e.hasOwnProperty('nodes'))
-        data.tracks.push(e);
+        pn.tracks.push(e);
   }
 
-  Fix.fixMissingStops(data, stopsTmp);
+  Fix.fixMissingStops(pn, stopsTmp);
 
   for (let s of stopsTmp) {
-    const node = data.nodes.get(s.id);
+    const node = pn.nodes.get(s.id);
     node.tags = s.tags;
-    data.stops.push(node);
+    pn.stops.push(node);
   }
 
-  Fix.fixStopsNames(data);
-  Fix.fixWaysDirections(data);
-  Fix.fixMissingMaxspeed(data);
-  Fix.removeBannedNodes(data);
+  Fix.fixStopsNames(pn);
+  Fix.fixWaysDirections(pn);
+  Fix.fixMissingMaxspeed(pn);
+  Fix.removeBannedNodes(pn);
 
-  for (let s of data.stops) {
-    const currIds = data.stopsIds.get(s.tags.name);
+  for (let s of pn.stops) {
+    const currIds = pn.stopsIds.get(s.tags.name);
 
     if (currIds == undefined)
-      data.stopsIds.set(s.tags.name, [s.id]);
+      pn.stopsIds.set(s.tags.name, [s.id]);
     else {
       currIds.push(s.id);
-      data.stopsIds.set(s.tags.name, currIds);
+      pn.stopsIds.set(s.tags.name, currIds);
     }
   }
-  
-  for(let track of data.tracks) {
-    track.nodes = track.nodes.map(id => data.nodes.get(id));
+
+  for (let track of pn.tracks) {
+    track.nodes = track.nodes.map(id => pn.nodes.get(id));
   }
 
-  Graph.findAdjacentNodes(data);
-  Graph.findSuccessorNodes(data);
-  Graph.manualSuccessorNodesAdjustments(data);
+  Graph.findAdjacentNodes(pn);
+  Graph.findSuccessorNodes(pn);
+  Graph.manualSuccessorNodesAdjustments(pn);
 
-  Fix.removeFloatingIslands(data);
+  Fix.removeFloatingIslands(pn);
 
-  for (let [id, n] of data.nodes)
+  for (let [id, n] of pn.nodes)
     if (n.adjacentNodes.length > 2) {
-      data.joints.push(n);
+      pn.joints.push(n);
       n.junction = undefined;
     }
 
-  Track.removeTrackCrossings(data);
-  Track.generateOppositeEdgesToBidirectionalTracks(data);
+  Track.removeTrackCrossings(pn);
+  Track.generateOppositeEdgesToBidirectionalTracks(pn);
 
-  Junction.findJunctions(data);
-  Junction.generateTrafficLights(data);
-  Junction.manualJunctionAdjustments(data);
+  Junction.findJunctions(pn);
+  Junction.generateTrafficLights(pn);
+  Junction.manualJunctionAdjustments(pn);
 
-  Track.regenerateTracks(data);
+  Track.regenerateTracks(pn);
 
-  return data;
+  return pn;
 }
 
-function processLogicalNetwork(physicalNetwork, raw_schedule) {
+function processLogicalNetwork(physicalNetwork, raw_schedule) { //creates logical network
   const schedule = processRawSchedule(raw_schedule);
 
-  const logicalData = {
+  const ln = { //logical network
     routes: [],
     trips: []
   };
 
   Fix.removeFakeRouteStops(schedule);
 
-  Schedule.createRoutes(physicalNetwork, schedule, logicalData);
-  Schedule.createTrips(logicalData);
+  Schedule.createRoutes(physicalNetwork, schedule, ln);
+  Schedule.createTrips(ln);
 
-  return logicalData;
+  return ln;
 }
 
-function processRawSchedule(rawSchedule) {
+function processRawSchedule(rawSchedule) { //some trimming of raw data etc.
   const schedule = JSON.parse(JSON.stringify(rawSchedule));
 
   for (let l = 0; l < schedule.lines.length; l++) {

@@ -1,9 +1,9 @@
 const findPath = require("./graph.js").findPath;
 
 module.exports = {
-    removeTrackCrossings: function (data) { //splits nodes with 4 adjacent nodes to 2 nodes with 2 adjacent nodes
-        for (let ji = data.joints.length - 1; ji >= 0; ji--) {
-            const j = data.joints[ji];
+    removeTrackCrossings: function (pn) { //splits nodes with 4 adjacent nodes to 2 nodes with 2 adjacent nodes
+        for (let ji = pn.joints.length - 1; ji >= 0; ji--) {
+            const j = pn.joints[ji];
 
             if (j.adjacentNodes.length != 4)
                 continue;
@@ -63,22 +63,22 @@ module.exports = {
             const path2 = paths[minIx];
 
             const j1 = {
-                id: findAvaibleNodeID(data),
+                id: findAvaibleNodeID(pn),
                 x: j.x,
                 y: j.y,
                 adjacentNodes: [j.adjacentNodes[path1.ix1], j.adjacentNodes[path1.ix2]],
                 accessibleNodes: [j.adjacentNodes[path1.accessible]]
             }
-            data.nodes.set(j1.id, j1);
+            pn.nodes.set(j1.id, j1);
 
             const j2 = {
-                id: findAvaibleNodeID(data),
+                id: findAvaibleNodeID(pn),
                 x: j.x,
                 y: j.y,
                 adjacentNodes: [j.adjacentNodes[path2.ix1], j.adjacentNodes[path2.ix2]],
                 accessibleNodes: [j.adjacentNodes[path2.accessible]]
             }
-            data.nodes.set(j2.id, j2);                  
+            pn.nodes.set(j2.id, j2);
 
             for (let adj of j.adjacentNodes) {
                 for (let k = 0; k < adj.accessibleNodes.length; k++) {
@@ -105,15 +105,15 @@ module.exports = {
                     }
                 }
             }
-            data.nodes.delete(j.id);
-            data.joints.splice(ji, 1);
+            pn.nodes.delete(j.id);
+            pn.joints.splice(ji, 1);
         }
     },
 
-    generateOppositeEdgesToBidirectionalTracks: function (data) {
+    generateOppositeEdgesToBidirectionalTracks: function (pn) {
         const bidirectionalTracks = [];
         bidirectionalTracks.push({
-            nodes: [1770978486, ...findPath(data.nodes.get(1770978486), [213578407])[1].reverse()],
+            nodes: [1770978486, ...findPath(pn.nodes.get(1770978486), [213578407])[1].reverse()],
             in1: 4556178680,
             out1: 1770978488,
             in2: 1770978489,
@@ -121,7 +121,7 @@ module.exports = {
         });
 
         bidirectionalTracks.push({
-            nodes: [213578409, ...findPath(data.nodes.get(213578409), [1770978496])[1].reverse()],
+            nodes: [213578409, ...findPath(pn.nodes.get(213578409), [1770978496])[1].reverse()],
             in1: 4556178684,
             out1: 1770978500,
             in2: 1770978502,
@@ -129,11 +129,11 @@ module.exports = {
         });
 
         for (let biTrack of bidirectionalTracks) {
-            biTrack.nodes = biTrack.nodes.map(id => data.nodes.get(id));
-            biTrack.in1 = data.nodes.get(biTrack.in1);
-            biTrack.out1 = data.nodes.get(biTrack.out1);
-            biTrack.in2 = data.nodes.get(biTrack.in2);
-            biTrack.out2 = data.nodes.get(biTrack.out2);
+            biTrack.nodes = biTrack.nodes.map(id => pn.nodes.get(id));
+            biTrack.in1 = pn.nodes.get(biTrack.in1);
+            biTrack.out1 = pn.nodes.get(biTrack.out1);
+            biTrack.in2 = pn.nodes.get(biTrack.in2);
+            biTrack.out2 = pn.nodes.get(biTrack.out2);
 
             biTrack.in1.accessibleNodes = [biTrack.nodes[0]];
             for (let i = 0; i < biTrack.nodes.length - 1; i++) {
@@ -147,13 +147,13 @@ module.exports = {
             for (let i = 0; i < biTrack.nodes.length; i++) {
                 const node = biTrack.nodes[i];
                 const oppositeNode = {
-                    id: findAvaibleNodeID(data),
+                    id: findAvaibleNodeID(pn),
                     x: node.x,
                     y: node.y,
                     accessibleNodes: [],
                     adjacentNodes: node.adjacentNodes
                 }
-                data.nodes.set(oppositeNode.id, oppositeNode);
+                pn.nodes.set(oppositeNode.id, oppositeNode);
                 oppositeEdge.push(oppositeNode);
             }
             oppositeEdge = oppositeEdge.reverse();
@@ -168,18 +168,18 @@ module.exports = {
         }
     },
 
-    regenerateTracks: function (data) { //generates tracks based on graph 
+    regenerateTracks: function (pn) { //generates tracks based on graph 
         const specialNodes = [];
 
         //specialNodes.push(data.nodes.get(2384741817));
 
-        data.nodes.get(2384741817).special = true;
+        pn.nodes.get(2384741817).special = true;
 
-        data.nodes.get(2163355821).special = true;
-        data.nodes.get(3161355030).special = true;
+        pn.nodes.get(2163355821).special = true;
+        pn.nodes.get(3161355030).special = true;
 
-        for (let [id, node] of data.nodes) {
-            if(!node.hasOwnProperty("special"))
+        for (let [id, node] of pn.nodes) {
+            if (!node.hasOwnProperty("special"))
                 node.special = false;
 
             if (node.adjacentNodes.length != 2 ||
@@ -215,9 +215,9 @@ module.exports = {
 
                 let length = 0;
                 let prevNode = track.nodes[0];
-                for(let i = 1; i < track.nodes.length; i++) {
+                for (let i = 1; i < track.nodes.length; i++) {
                     const node = track.nodes[i];
-                    length += Math.sqrt( (node.x - prevNode.x)**2 + (node.y - prevNode.y)**2);
+                    length += Math.sqrt((node.x - prevNode.x) ** 2 + (node.y - prevNode.y) ** 2);
                     prevNode = node;
                 }
                 track.length = length;
@@ -227,13 +227,13 @@ module.exports = {
             }
         }
 
-        data.tracks = newTracks;
+        pn.tracks = newTracks;
     }
 };
 
-function findAvaibleNodeID(data) {
+function findAvaibleNodeID(pn) {
     let id = 0;
-    while (data.nodes.get(id) != undefined)
+    while (pn.nodes.get(id) != undefined)
         id++;
 
     return id;

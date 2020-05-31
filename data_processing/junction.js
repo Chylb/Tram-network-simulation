@@ -1,8 +1,8 @@
 const findPath = require("./graph.js").findPath;
 
 module.exports = {
-  findJunctions: function (data) {
-    for (let joint of data.joints) {
+  findJunctions: function (pn) { //finds junctions and adds junction object to physical network
+    for (let joint of pn.joints) {
       if (joint.junction != undefined)
         continue;
 
@@ -14,13 +14,13 @@ module.exports = {
       joint.junction = junction;
       groupNearbyJoints(joint, junction);
 
-      data.junctions.push(junction);
+      pn.junctions.push(junction);
     }
 
     function groupNearbyJoints(node, junction) {
       const searchingDistance = 120;
 
-      for (let j of data.joints) {
+      for (let j of pn.joints) {
         if (j.junction != undefined)
           continue;
 
@@ -34,15 +34,15 @@ module.exports = {
     }
   },
 
-  generateTrafficLights: function (data) {
-    for (let junction of data.junctions) {
+  generateTrafficLights: function (pn) { //for each junction generates traffic lights
+    for (let junction of pn.junctions) {
 
       for (let joint of junction.joints) {
         if (joint.accessibleNodes.length > 1) {
           junction.trafficLights.push(joint);
         }
       }
-      
+
       const trafficLightsIds = junction.trafficLights.map(x => x.id);
 
       for (let joint of junction.trafficLights) { //removing pointless traffic lights
@@ -55,17 +55,17 @@ module.exports = {
     }
   },
 
-  manualJunctionAdjustments: function (data) {
+  manualJunctionAdjustments: function (pn) {
     const newJunction = {
       joints: [],
       trafficLights: []
     };
-    data.junctions.push(newJunction);
+    pn.junctions.push(newJunction);
 
-    changeJunction(data.nodes.get(2374339737), newJunction);
-    changeJunction(data.nodes.get(290038770), newJunction);
-    changeJunction(data.nodes.get(2374339745), newJunction);
-    changeJunction(data.nodes.get(2374339754), newJunction);
+    changeJunction(pn.nodes.get(2374339737), newJunction);
+    changeJunction(pn.nodes.get(290038770), newJunction);
+    changeJunction(pn.nodes.get(2374339745), newJunction);
+    changeJunction(pn.nodes.get(2374339754), newJunction);
   }
 };
 

@@ -6,7 +6,7 @@ module.exports = {
         }
 
         const idGen = idMaker();
-        
+
         for (let [id, node] of physicalNetwork.nodes) {
             node.id = idGen.next().value;
         }
@@ -23,7 +23,7 @@ module.exports = {
     },
 
     makeNetworkModel: function (physicalNetwork, logicalNetwork) { //transforms data to simulation-friendly tram network model
-        const export_data = {
+        const networkModel = {
             nodes: [],
             edges: [],
             junctions: [],
@@ -43,7 +43,7 @@ module.exports = {
                 }
                 if (node.hasOwnProperty("trafficLight"))
                     export_node.trafficLight = node.trafficLight;
-                export_data.nodes.push(export_node);
+                networkModel.nodes.push(export_node);
             }
         }
 
@@ -51,7 +51,7 @@ module.exports = {
             const head = track.nodes[track.nodes.length - 1];
             const tail = track.nodes[0];
 
-            const edge = {
+            const export_edge = {
                 id: track.id,
                 head: head.id,
                 tail: tail.id,
@@ -59,14 +59,14 @@ module.exports = {
                 maxspeed: track.tags.maxspeed
             };
 
-            export_data.edges.push(edge);
+            networkModel.edges.push(export_edge);
         }
 
         for (let junction of physicalNetwork.junctions) {
             const export_junction = {
                 trafficLights: junction.trafficLights.map(x => x.id)
             };
-            export_data.junctions.push(export_junction);
+            networkModel.junctions.push(export_junction);
         }
 
         for (let route of logicalNetwork.routes) {
@@ -75,7 +75,7 @@ module.exports = {
                 name: route.scheduleRoute.name,
                 stops: route.stops
             };
-            export_data.routes.push(export_route);
+            networkModel.routes.push(export_route);
         }
 
         for (let trip of logicalNetwork.trips) {
@@ -83,14 +83,14 @@ module.exports = {
                 route: trip.route,
                 times: trip.times
             };
-            export_data.trips.push(export_trip);
+            networkModel.trips.push(export_trip);
         }
 
-        return export_data;
+        return networkModel;
     },
-    
+
     makeNetworkVisualizationModel: function (physicalNetwork, logicalNetwork) {
-        const export_data = {
+        const networkVisualizationModel = {
             nodes: [],
             edges: [],
             junctions: []
@@ -108,30 +108,30 @@ module.exports = {
             if (node.hasOwnProperty("trafficLight"))
                 export_node.trafficLight = node.trafficLight;
 
-            export_data.nodes.push(export_node);
+            networkVisualizationModel.nodes.push(export_node);
         }
 
         for (let track of physicalNetwork.tracks) {
             const head = track.nodes[track.nodes.length - 1];
             const tail = track.nodes[0];
 
-            const edge = {
+            const export_edge = {
                 id: track.id,
                 nodes: track.nodes.map(node => node.id),
                 length: track.length,
                 maxspeed: track.tags.maxspeed
             };
 
-            export_data.edges.push(edge);
+            networkVisualizationModel.edges.push(export_edge);
         }
 
         for (let junction of physicalNetwork.junctions) {
             const export_junction = {
                 trafficLights: junction.trafficLights.map(x => x.id)
             };
-            export_data.junctions.push(export_junction);
+            networkVisualizationModel.junctions.push(export_junction);
         }
 
-        return export_data;
+        return networkVisualizationModel;
     }
 };

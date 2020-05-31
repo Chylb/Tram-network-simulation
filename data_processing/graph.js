@@ -1,6 +1,6 @@
 module.exports = {
-  findAdjacentNodes: function (data) { //finds adjacent nodes for each node 
-    for (let track of data.tracks) {
+  findAdjacentNodes: function (pn) { //finds adjacent nodes for each node 
+    for (let track of pn.tracks) {
 
       track.nodes[0].adjacentNodes.push(track.nodes[1]);
 
@@ -17,8 +17,8 @@ module.exports = {
     }
   },
 
-  findSuccessorNodes: function (data) { //for each node finds direct successor nodes
-    for (let track of data.tracks)
+  findSuccessorNodes: function (pn) { //for each node finds direct successor nodes
+    for (let track of pn.tracks)
       for (let i = 0; i < track.nodes.length - 1; i++) {
         const node = track.nodes[i];
         const nextNode = track.nodes[i + 1];
@@ -26,8 +26,8 @@ module.exports = {
       }
   },
 
-  manualSuccessorNodesAdjustments: function (data) {
-    data.nodes.get(2756848427).accessibleNodes = [data.nodes.get(1770194427)];
+  manualSuccessorNodesAdjustments: function (pn) {
+    pn.nodes.get(2756848427).accessibleNodes = [pn.nodes.get(1770194427)];
   },
 
   findPath: function (source, targets, limit = Number.POSITIVE_INFINITY) { //finds shortest path between source and nearest target
@@ -87,7 +87,7 @@ module.exports = {
       }
     }
 
-    if(!found)
+    if (!found)
       return [Number.POSITIVE_INFINITY, []];
 
     const path = [];
