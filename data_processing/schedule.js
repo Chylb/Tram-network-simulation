@@ -15,6 +15,76 @@ module.exports = {
         routeStart.set("Krowodrza Górka - Nowy Bieżanów P+R", 257655889);
         routeEnd.set("Krowodrza Górka - Nowy Bieżanów P+R", 623562103);
 
+        routeStart.set("Wzgórza Krzesławickie - Bronowice Małe", 213578451);
+        routeEnd.set("Wzgórza Krzesławickie - Bronowice Małe", 2419986541);
+        routeStart.set("Bronowice Małe - Wzgórza Krzesławickie", 2419986540);
+        routeEnd.set("Bronowice Małe - Wzgórza Krzesławickie", 2426087293);
+
+        routeStart.set("TAURON Arena Kraków Wieczysta - Krowodrza Górka", 4069652993);
+        routeEnd.set("TAURON Arena Kraków Wieczysta - Krowodrza Górka", 2423851561);
+        routeStart.set("Krowodrza Górka - TAURON Arena Kraków Wieczysta", 257655889);
+        routeEnd.set("Krowodrza Górka - TAURON Arena Kraków Wieczysta", 639603980);
+
+        routeStart.set("Borek Fałęcki - Bronowice Małe", 321429867);
+        routeEnd.set("Borek Fałęcki - Bronowice Małe", 2419986541);
+        routeStart.set("Bronowice Małe - Borek Fałęcki", 2419986540);
+        routeEnd.set("Bronowice Małe - Borek Fałęcki", 321429856);
+
+        routeStart.set("Bardosa - Nowy Bieżanów P+R", 2194801607);
+        routeEnd.set("Bardosa - Nowy Bieżanów P+R", 287442350);
+        routeStart.set("Nowy Bieżanów P+R - Bardosa", 5322817078);
+        routeEnd.set("Nowy Bieżanów P+R - Bardosa", 773635753);
+
+        routeStart.set("Mały Płaszów P+R - Czerwone Maki P+R", 1889519517);
+        routeEnd.set("Mały Płaszów P+R - Czerwone Maki P+R", 2017955948);
+        routeStart.set("Czerwone Maki P+R - Mały Płaszów P+R", 2017955951);
+        routeEnd.set("Czerwone Maki P+R - Mały Płaszów P+R", 2431520659);
+
+        routeStart.set("Nowy Bieżanów P+R - Bronowice", 5322817078);
+        routeEnd.set("Nowy Bieżanów P+R - Bronowice", 2428098333);
+        routeStart.set("Bronowice - Nowy Bieżanów P+R", 2419959764);
+        routeEnd.set("Bronowice - Nowy Bieżanów P+R", 287442350);
+
+        routeStart.set("Pleszów - Bronowice", 1764757832);
+        routeEnd.set("Pleszów - Bronowice", 2428098333);
+        routeStart.set("Bronowice - Pleszów", 2419959764);
+        routeEnd.set("Bronowice - Pleszów", 2427003514);
+
+        routeStart.set("Czerwone Maki P+R - Krowodrza Górka", 2017955951);
+        routeEnd.set("Czerwone Maki P+R - Krowodrza Górka", 2423851561);
+        routeStart.set("Krowodrza Górka - Czerwone Maki P+R", 257655889);
+        routeEnd.set("Krowodrza Górka - Czerwone Maki P+R", 2017955948);
+
+        routeStart.set("Borek Fałęcki - Dworzec Towarowy", 321429867);
+        routeEnd.set("Borek Fałęcki - Dworzec Towarowy", 4559858147);
+        routeStart.set("Dworzec Towarowy - Borek Fałęcki", 2423804378);
+        routeEnd.set("Dworzec Towarowy - Borek Fałęcki", 321429856);
+
+        routeStart.set("Mały Płaszów P+R - Cichy Kącik", 1889519517);
+        routeEnd.set("Mały Płaszów P+R - Cichy Kącik", 2423298435);
+        routeStart.set("Cichy Kącik - Mały Płaszów P+R", 2419831874);
+        routeEnd.set("Cichy Kącik - Mały Płaszów P+R", 2431520659);
+
+        routeStart.set("Borek Fałęcki - Kopiec Wandy", 321429867);
+        routeEnd.set("Borek Fałęcki - Kopiec Wandy", 1763772088);
+        routeStart.set("Kopiec Wandy - Borek Fałęcki", 773635797);
+        routeEnd.set("Kopiec Wandy - Borek Fałęcki", 321429856);
+
+        routeStart.set("Kurdwanów P+R - Bronowice Małe", 5728702340);
+        routeEnd.set("Kurdwanów P+R - Bronowice Małe", 2419986541);
+        routeStart.set("Bronowice Małe - Kurdwanów P+R", 2419986540);
+        routeEnd.set("Bronowice Małe - Kurdwanów P+R", 289685340);
+
+        routeStart.set("Krowodrza Górka - Kurdwanów P+R", 257655889);
+        routeEnd.set("Krowodrza Górka - Kurdwanów P+R", 289685340);
+        routeStart.set("Kurdwanów P+R - Krowodrza Górka", 5728702340);
+        routeEnd.set("Kurdwanów P+R - Krowodrza Górka", 639603980);
+
+        routeStart.set("Czerwone Maki P+R - Wzgórza Krzesławickie", 2017955951);
+        routeEnd.set("Czerwone Maki P+R - Wzgórza Krzesławickie", 2426087293);
+        routeStart.set("Wzgórza Krzesławickie - Czerwone Maki P+R", 213578451);
+        routeEnd.set("Wzgórza Krzesławickie - Czerwone Maki P+R", 2017955948);
+
         let id = 0;
 
         for (let line of schedule.lines) {
