@@ -10,6 +10,11 @@ module.exports = {
         routeStart.set("Salwator - Wzgórza Krzesławickie", 2419732952);
         routeEnd.set("Salwator - Wzgórza Krzesławickie", 2426087293);
 
+        routeStart.set("Salwator - Cmentarz Rakowicki", 2419732952);
+        routeEnd.set("Salwator - Cmentarz Rakowicki", 2425718627);
+        routeStart.set("Cmentarz Rakowicki - Salwator", 321458378);
+        routeEnd.set("Cmentarz Rakowicki - Salwator", 2419732952);
+
         routeStart.set("Nowy Bieżanów P+R - Krowodrza Górka", 287586332);
         routeEnd.set("Nowy Bieżanów P+R - Krowodrza Górka", 257656078);
         routeStart.set("Krowodrza Górka - Nowy Bieżanów P+R", 257655889);
@@ -66,7 +71,7 @@ module.exports = {
         routeEnd.set("Cichy Kącik - Mały Płaszów P+R", 2431520659);
 
         routeStart.set("Borek Fałęcki - Kopiec Wandy", 321429867);
-        routeEnd.set("Borek Fałęcki - Kopiec Wandy", 1763772088);
+        routeEnd.set("Borek Fałęcki - Kopiec Wandy", 213578731);
         routeStart.set("Kopiec Wandy - Borek Fałęcki", 773635797);
         routeEnd.set("Kopiec Wandy - Borek Fałęcki", 321429856);
 
