@@ -88,7 +88,7 @@ module.exports = {
     removeFakeRouteStops: function (schedule) {
         schedule.lines[5].direction1.stops.splice(3, 1); //there is no such a stop in this direction
         schedule.lines[11].direction1.stops.splice(3, 1);
-        schedule.lines[14].direction1.stops.splice(3, 1);
+        schedule.lines[13].direction1.stops.splice(3, 1);
     }
 };
 
