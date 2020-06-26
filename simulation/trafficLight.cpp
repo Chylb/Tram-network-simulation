@@ -1,25 +1,34 @@
 #include "trafficLight.h"
 
-#include <math.h>
+#include "tram.h"
+#include "junction.h"
 
-TrafficLight::TrafficLight(int id, int phase) : Node(id, true, false)
+TrafficLight::TrafficLight(int id) : Node(id, true, false, false)
 {
-    m_phase = phase;
+    m_junction = nullptr;
+    changeState(false, 0.0);
 }
 
-void TrafficLight::setPhaseCount(int phaseCount)
+void TrafficLight::setJunction(Junction *junction)
 {
-    m_phaseCount = phaseCount;
+    m_junction = junction;
 }
 
-float TrafficLight::timeToGreen(float time)
+bool TrafficLight::requestGreen(Tram *tram, float time)
 {
-    float cycleTime = fmod(time, c_phaseDuration * m_phaseCount);
-    float timeToGreen = m_phase * c_phaseDuration - cycleTime;
-    if (timeToGreen > 0.0)
-        return timeToGreen;
-    else if (timeToGreen > -c_phaseDuration)
-        return 0.0;
+    return m_junction->requestGreen(tram, this, time);
+}
 
-    return timeToGreen + c_phaseDuration * m_phaseCount;
+void TrafficLight::changeState(bool state, float time) {
+    m_stateHistory.push_back(state);
+    m_timeHistory.push_back(time);
+}
+
+json TrafficLight::getHistory() {
+    json history;
+    history["id"] = m_id;
+    history["time"] = m_timeHistory;
+    history["state"] = m_stateHistory;
+
+    return history;
 }

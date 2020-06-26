@@ -4,15 +4,26 @@
 
 #include "node.h"
 
+class Junction;
+class Tram;
+
+#include "include/json.hpp"
+using json = nlohmann::json;
+
 class TrafficLight : public Node
 {
 public:
-	TrafficLight(int id, int phase);
-	void setPhaseCount(int phaseCount);
-	float timeToGreen(float time);
+	TrafficLight(int id);
+	void setJunction(Junction *junction);
+
+	bool requestGreen(Tram *tram, float time);
+	void changeState(bool state, float time);
+
+	json getHistory();
 
 private:
-	int m_phase;
-	int m_phaseCount;
-	constexpr static float c_phaseDuration = 20.0;
+	Junction *m_junction;
+
+	std::list<bool> m_stateHistory;
+	std::list<float> m_timeHistory;
 };

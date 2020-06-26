@@ -186,6 +186,7 @@ module.exports = {
                 node.accessibleNodes.length != 1 ||
                 node.hasOwnProperty("tags") ||
                 node.hasOwnProperty("trafficLight") ||
+                node.exit ||
                 node.special
             ) {
                 node.special = true;

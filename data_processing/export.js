@@ -38,11 +38,12 @@ module.exports = {
                     y: node.y,
                     id: node.id
                 };
-                if (node.hasOwnProperty("tags")) {
+                if (node.hasOwnProperty("tags"))
                     export_node.stopName = node.tags.name;
-                }
                 if (node.hasOwnProperty("trafficLight"))
                     export_node.trafficLight = node.trafficLight;
+                if (node.hasOwnProperty("exit"))
+                    export_node.exit = node.exit;
                 networkModel.nodes.push(export_node);
             }
         }
@@ -64,7 +65,8 @@ module.exports = {
 
         for (let junction of physicalNetwork.junctions) {
             const export_junction = {
-                trafficLights: junction.trafficLights.map(x => x.id)
+                trafficLights: junction.trafficLights.map(x => x.id),
+                exits: junction.exits.map(x => x.id)
             };
             networkModel.junctions.push(export_junction);
         }
@@ -89,11 +91,10 @@ module.exports = {
         return networkModel;
     },
 
-    makeNetworkVisualizationModel: function (physicalNetwork, logicalNetwork) {
+    makeNetworkVisualizationModel: function (physicalNetwork) {
         const networkVisualizationModel = {
             nodes: [],
-            edges: [],
-            junctions: []
+            edges: []
         };
 
         for (let [id, node] of physicalNetwork.nodes) {
@@ -123,13 +124,6 @@ module.exports = {
             };
 
             networkVisualizationModel.edges.push(export_edge);
-        }
-
-        for (let junction of physicalNetwork.junctions) {
-            const export_junction = {
-                trafficLights: junction.trafficLights.map(x => x.id)
-            };
-            networkVisualizationModel.junctions.push(export_junction);
         }
 
         return networkVisualizationModel;

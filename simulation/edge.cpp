@@ -23,7 +23,10 @@ Node *Edge::getTail()
 
 void Edge::addTram(Tram *tram)
 {
-	m_nextTram[tram] = m_trams.front();
+	if (m_trams.size() != 0)
+		m_nextTram[tram] = m_trams.front();
+	else
+		m_nextTram[tram] = nullptr;
 	m_trams.push_front(tram);
 }
 
@@ -32,9 +35,10 @@ void Edge::removeTram()
 	auto removed = m_trams.back();
 	m_trams.pop_back();
 
-	Tram *lastTram = m_trams.back();
-	if (lastTram != nullptr)
+	if (m_trams.size() != 0) {
+		Tram* lastTram = m_trams.back();
 		m_nextTram[lastTram] = nullptr;
+	}
 
 	m_nextTram.erase(removed);
 }
@@ -42,11 +46,6 @@ void Edge::removeTram()
 float Edge::getLength()
 {
 	return m_length;
-}
-
-std::list<float> Edge::getTramsDistances()
-{
-	return m_tramsDistances;
 }
 
 std::list<Tram *> Edge::getTrams()

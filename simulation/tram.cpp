@@ -3,19 +3,31 @@
 #include "edge.h"
 #include "event.h"
 #include "trafficLight.h"
+#include "junction.h"
+#include "simulation.h"
 
 #include <cmath>
 
-Tram::Tram(int id, Edge *edge)
+Tram::Tram(int id, Edge *edge, Simulation *simulation)
 {
     m_id = id;
+    m_simulation = simulation;
     m_currentEdge = edge;
     m_state = resting;
     m_position = 0.0;
     m_speed = 0.0;
+    m_currentJunction = nullptr;
+    m_nextEvent = nullptr;
+    m_waitingTram = nullptr;
 }
 
-Event *Tram::getNextEvent(float time)
+void Tram::setNextEvent(Event *event)
+{
+    m_nextEvent = event;
+    m_simulation->addEvent(event);
+}
+
+void Tram::generateNextEvent(float time)
 {
     enum EventCause
     {
@@ -80,76 +92,69 @@ Event *Tram::getNextEvent(float time)
 
         nextEvent = new EventReachedVmax(this, time + timeToNextEvent);
     }
-    else if (m_state == moving)
-    {
-        timeToNextEvent = (decelerationX0 - m_position) / m_speed;
-        if (timeToNextEvent < 0.5)
-            timeToNextEvent = 0.0;
-
-        if (timeToNextEvent == 0.0)
-        {
-            if (eventCause == trafficLight)
-            {
-                auto trafficLight = m_trafficLightsToVisit.front();
-                if (trafficLight->timeToGreen(time) == 0.0)
-                {
-                    m_trafficLightsToVisit.pop_front();
-                    return getNextEvent(time);
-                }
-            }
-            nextEvent = getEventAfterDeceleration(time, &timeToNextEvent, eventCauseNode);
-        }
-        else
-        {
-            nextEvent = new EventCheckForCollisions(this, time + timeToNextEvent);
-        }
-    }
     else
     {
-        timeToNextEvent = accdec_t1_of_x(nearestEventCausePosition - m_position, m_speed, 0.0);
+        if (m_state == moving)
+            timeToNextEvent = (decelerationX0 - m_position) / m_speed;
+        else
+            timeToNextEvent = accdec_t1_of_x(nearestEventCausePosition - m_position, m_speed, 0.0);
 
-        if (timeToNextEvent < 0.5)
+        if (timeToNextEvent > 0.5)
+        {
+            if (m_state != moving)
+                changeState(accelerating, time);
+
+            nextEvent = new EventCheckForCollisions(this, time + timeToNextEvent);
+        }
+        else
         {
             timeToNextEvent = 0.0;
 
             if (m_state == resting)
             {
-                if (eventCauseNode != nullptr)
+                if (eventCause == tram)
                 {
-                    nextEvent = getEventAfterDeceleration(time, &timeToNextEvent, eventCauseNode);
+                    auto tramAhead = getTramAhead(INFINITY);
+                    tramAhead->setWaitingTram(this);
+                    nextEvent = nullptr;
+                }
+                else if (eventCause == trafficLight)
+                {
+                    nextEvent = nullptr;
                 }
                 else
                 {
-                    nextEvent = new EventCheckForCollisions(this, time + 10.0);
+                    nextEvent = new EventPassangerExchange(this, time); //edge case, happens only at the beginning of the tram's trip
                 }
             }
             else
             {
                 if (eventCause == trafficLight)
                 {
-                    auto trafficLight = m_trafficLightsToVisit.front();
-                    if (trafficLight->timeToGreen(time) == 0.0)
+                    TrafficLight *trafficLight = (TrafficLight *)eventCauseNode;
+
+                    if (trafficLight->requestGreen(this, time))
                     {
                         m_trafficLightsToVisit.pop_front();
-                        return getNextEvent(time);
+                        return generateNextEvent(time);
                     }
                 }
-                nextEvent = getEventAfterDeceleration(time, &timeToNextEvent, eventCauseNode);
-            }
-        }
-        else
-        {
-            changeState(accelerating, time);
 
-            if (eventCause == tramStop)
-            {
-                nextEvent = new EventBeginDeceleration(this, time + timeToNextEvent, eventCauseNode);
-            }
-            else
-            {
-                nextEvent = new EventCheckForCollisions(this, time + timeToNextEvent);
+                changeState(decelerating, time);
+                timeToNextEvent = dec_t_of_v(0.0, m_speed);
+
+                if (eventCause == tramStop)
+                    nextEvent = new EventPassangerExchange(this, time + timeToNextEvent);
+                else
+                    nextEvent = new EventEndDeceleration(this, time + timeToNextEvent, 0.0);
             }
         }
+    }
+
+    if (nextEvent == nullptr)
+    {
+        m_nextEvent = nullptr;
+        return;
     }
 
     switch (m_state)
@@ -168,7 +173,9 @@ Event *Tram::getNextEvent(float time)
         break;
     }
 
-    return addIntermediateEvents(nextEvent, nextEventPosition, time, eventCauseNode);
+    nextEvent = addIntermediateEvents(nextEvent, nextEventPosition, time, eventCauseNode);
+    m_nextEvent = nextEvent;
+    m_simulation->addEvent(nextEvent);
 }
 
 Event *Tram::addIntermediateEvents(Event *mainEvent, float mainEventPosition, float time, Node *eventCauseNode)
@@ -221,30 +228,6 @@ Event *Tram::addIntermediateEvents(Event *mainEvent, float mainEventPosition, fl
         return firstEvent;
     }
     return mainEvent;
-}
-
-Event *Tram::getEventAfterDeceleration(float time, float *timeToNextEvent, Node *eventCauseNode)
-{
-    changeState(decelerating, time);
-    *timeToNextEvent = dec_t_of_v(0.0, m_speed);
-
-    Event *event;
-    if (eventCauseNode != nullptr)
-    {
-        if (eventCauseNode->isTramStop())
-        {
-            event = new EventPassangerExchange(this, time + *timeToNextEvent);
-        }
-        else if (eventCauseNode->isTrafficLight())
-        {
-            event = new EventWaitAtTrafficLights(this, time + *timeToNextEvent);
-        }
-    }
-    else
-    {
-        event = new EventEndDeceleration(this, time + *timeToNextEvent, 0.0);
-    }
-    return event;
 }
 
 float Tram::getNextStopPosition()
@@ -349,6 +332,14 @@ void Tram::enterNextEdge(float time)
     m_currentEdge = m_edgesToVisit.front();
     m_edgesToVisit.pop_front();
     m_currentEdge->addTram(this);
+    if (m_currentEdge->getTail()->isJunctionExit())
+    {
+        if (m_currentJunction != nullptr)
+        {
+            m_currentJunction->removeTram(this, time);
+            m_currentJunction = nullptr;
+        }
+    }
 
     m_x0 = 0;
     m_v0 = m_speed;
@@ -373,16 +364,34 @@ float Tram::exchangePassengers(float time)
     return stopDuration;
 }
 
-float Tram::waitAtTrafficLights(float time)
+void Tram::notifyTrafficLight(float time)
 {
-    changeState(Tram::resting, time);
-    m_position = m_currentEdge->getLength();
-    m_speed = 0;
-
-    float waitDuration = m_trafficLightsToVisit.front()->timeToGreen(time);
     m_trafficLightsToVisit.pop_front();
+    if (m_nextEvent != nullptr)
+        m_simulation->removeEvent(m_nextEvent);
 
-    return waitDuration;
+    generateNextEvent(time);
+}
+
+void Tram::notifyTram(float time)
+{
+    auto nextEvent = new EventCheckForCollisions(this, time + 5.0);
+    m_simulation->addEvent(nextEvent);
+    m_nextEvent = nextEvent;
+}
+
+void Tram::endTrip(float time)
+{
+    if (m_currentJunction != nullptr)
+    {
+        m_currentJunction->removeTram(this, time);
+    }
+    if (m_waitingTram != nullptr)
+    {
+        m_waitingTram->notifyTram(time);
+    }
+    getCurrentEdge()->removeTram();
+    m_simulation->removeTram(this);
 }
 
 //////////////////////////////////////////////////////////////
@@ -499,6 +508,16 @@ float Tram::getMaxSpeed()
     return c_maxSpeed;
 }
 
+float Tram::getMaxDecelerationDistance()
+{
+    return c_decMaxX;
+}
+
+float Tram::getLength()
+{
+    return c_length;
+}
+
 Edge *Tram::getCurrentEdge()
 {
     return m_currentEdge;
@@ -518,6 +537,11 @@ float Tram::stoppingDistance()
 void Tram::setCurrentEdge(Edge *currentEdge)
 {
     m_currentEdge = currentEdge;
+}
+
+void Tram::setWaitingTram(Tram *waitingTram)
+{
+    m_waitingTram = waitingTram;
 }
 
 void Tram::setEdgesToVisit(std::list<Edge *> edgesToVisit)
@@ -545,6 +569,11 @@ void Tram::setSpeed(float speed)
     m_speed = speed;
 }
 
+void Tram::setCurrentJunction(Junction *junction)
+{
+    m_currentJunction = junction;
+}
+
 void Tram::changeState(State state, float time)
 {
     if (state != m_state)
@@ -556,6 +585,12 @@ void Tram::changeState(State state, float time)
         m_x0 = m_position;
         m_v0 = m_speed;
         m_t0 = time;
+
+        if (m_waitingTram != nullptr)
+        {
+            m_waitingTram->notifyTram(time);
+            m_waitingTram = nullptr;
+        }
     }
 }
 
@@ -583,7 +618,7 @@ json Tram::getHistory()
 
 //////////////////////////////////////////////////////////////////////////
 
-TramCollisionException::TramCollisionException(Tram *tram, Tram* tramAhead)
+TramCollisionException::TramCollisionException(Tram *tram, Tram *tramAhead)
 {
     m_msg = "Tram collision exception. Tram " + std::to_string(tram->getId()) + " hit into " + std::to_string(tramAhead->getId()) + ".";
 }

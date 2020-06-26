@@ -8,7 +8,8 @@ module.exports = {
 
       const junction = {
         joints: [joint],
-        trafficLights: []
+        trafficLights: [],
+        exits: []
       }
 
       joint.junction = junction;
@@ -41,6 +42,9 @@ module.exports = {
         if (joint.accessibleNodes.length > 1) {
           junction.trafficLights.push(joint);
         }
+        else if (joint.adjacentNodes.length > 2) {
+          junction.exits.push(joint);
+        }
       }
 
       const trafficLightsIds = junction.trafficLights.map(x => x.id);
@@ -51,38 +55,121 @@ module.exports = {
           junction.trafficLights = junction.trafficLights.filter(x => !(x.id == path[0]));
         }
       }
+
+      const exitsIds = junction.exits.map(x => x.id);
+
+      for (let joint of junction.exits) { //removing pointless exits
+        let [dis, path] = findPath(joint, exitsIds, 60);
+        if (dis < Number.POSITIVE_INFINITY) {
+          junction.exits = junction.exits.filter(x => !(x.id == joint.id));
+        }
+      }
+
       updateJunction(junction);
     }
   },
 
   manualJunctionAdjustments: function (pn) {
-    const newJunction = {
-      joints: [],
-      trafficLights: []
-    };
-    pn.junctions.push(newJunction);
 
-    changeJunction(pn.nodes.get(2374339737), newJunction);
-    changeJunction(pn.nodes.get(290038770), newJunction);
-    changeJunction(pn.nodes.get(2374339745), newJunction);
-    changeJunction(pn.nodes.get(2374339754), newJunction);
+    const placCentralny = pn.nodes.get(1769087813).junction;
+    removeTrafficLight(pn.nodes.get(321437263));
+    removeTrafficLight(pn.nodes.get(1763772197));
+    removeTrafficLight(pn.nodes.get(321437392));
+    removeTrafficLight(pn.nodes.get(213605067));
+    assignTrafficLightToJunction(pn.nodes.get(321437328), placCentralny);
+    assignTrafficLightToJunction(pn.nodes.get(4232232962), placCentralny);
+    removeJunctionExit(pn.nodes.get(321437390));
+    removeJunctionExit(pn.nodes.get(321437325));
+    removeJunctionExit(pn.nodes.get(1578761764));
+    removeJunctionExit(pn.nodes.get(1763772203));
+    removeJunctionExit(pn.nodes.get(1763772203));
+    assignJunctionExitToJunction(pn.nodes.get(1769087805), placCentralny);
+    assignJunctionExitToJunction(pn.nodes.get(1763772195), placCentralny);
+
+    const rondoCzyżyńskie = pn.nodes.get(1763772276).junction;
+    removeTrafficLight(pn.nodes.get(1763772276));
+    removeTrafficLight(pn.nodes.get(3629965011));
+    removeTrafficLight(pn.nodes.get(4037275953));
+    removeTrafficLight(pn.nodes.get(3629965006));
+
+    const rondoGrzegórzeckie = pn.nodes.get(3071495540).junction;
+    removeTrafficLight(pn.nodes.get(4555585764));
+
+    const dworzecTowarowy = pn.nodes.get(261704060).junction;
+    removeTrafficLight(pn.nodes.get(443709635));
+    removeJunctionExit(pn.nodes.get(261704020));
+    removeJunctionExit(pn.nodes.get(2219344957));
+    assignJunctionExitToJunction(pn.nodes.get(2219344973), dworzecTowarowy);
+
+    const tunnelNorthExit = pn.nodes.get(2219344850).junction;
+    removeTrafficLight(pn.nodes.get(2219344850));
+    assignTrafficLightToJunction(pn.nodes.get(310654627), tunnelNorthExit);
+    assignTrafficLightToJunction(pn.nodes.get(2424198701), tunnelNorthExit);
+
+    const rondoMogilskie = pn.nodes.get(1887802516).junction;
+    removeTrafficLight(pn.nodes.get(1245993640));
+    removeTrafficLight(pn.nodes.get(1887812666));
+    assignTrafficLightToJunction(pn.nodes.get(1887802518), rondoMogilskie);
+    assignTrafficLightToJunction(pn.nodes.get(2420776737), rondoMogilskie);
+    
+    const łagiewniki = pn.nodes.get(2374339737).junction;
+    removeJunctionExit(pn.nodes.get(2374339777));
+    removeJunctionExit(pn.nodes.get(629106152));
+    
+    const nowyBieżanów = pn.nodes.get(287442345).junction;
+    removeTrafficLight(pn.nodes.get(287442345));
+    removeTrafficLight(pn.nodes.get(1310458659));
+    assignTrafficLightToJunction(pn.nodes.get(4555563339), nowyBieżanów);
+    assignTrafficLightToJunction(pn.nodes.get(4555563340), nowyBieżanów);
+
+    const bieżanowska = pn.nodes.get(1890503293).junction;
+    assignTrafficLightToJunction(pn.nodes.get(1890495563), bieżanowska);
+    assignTrafficLightToJunction(pn.nodes.get(5443781407), bieżanowska);
+    assignJunctionExitToJunction(pn.nodes.get(289684900), bieżanowska);
+    assignJunctionExitToJunction(pn.nodes.get(293619179), bieżanowska);
+    assignJunctionExitToJunction(pn.nodes.get(2424582864), bieżanowska);
+
+    for (let junction of pn.junctions) {
+      updateJunction(junction)
+    }
   }
 };
 
-function changeJunction(trafficLight, newJunction) {
-  const previousJunction = trafficLight.junction;
-  trafficLight.junction.trafficLights = trafficLight.junction.trafficLights.filter(x => !(x == trafficLight));
-  newJunction.trafficLights.push(trafficLight);
+function removeTrafficLight(trafficLight) {
+  if (trafficLight.hasOwnProperty("junction")) {
+    const previousJunction = trafficLight.junction;
+    previousJunction.trafficLights = previousJunction.trafficLights.filter(x => !(x == trafficLight));
+    delete trafficLight.junction;
+    delete trafficLight.trafficLight;
+  }
+}
 
-  updateJunction(previousJunction);
-  updateJunction(newJunction);
+function removeJunctionExit(exit) {
+  if (exit.hasOwnProperty("junction")) {
+    const previousJunction = exit.junction;
+    previousJunction.exits = previousJunction.exits.filter(x => !(x == exit));
+    delete exit.junction;
+    delete exit.exit;
+  }
+}
+
+function assignTrafficLightToJunction(trafficLight, junction) {
+  removeTrafficLight(trafficLight);
+  trafficLight.junction = junction;
+  junction.trafficLights.push(trafficLight);
+}
+
+function assignJunctionExitToJunction(exit, junction) {
+  removeJunctionExit(exit);
+  exit.junction = junction;
+  junction.exits.push(exit);
 }
 
 function updateJunction(junction) {
-  let trafficLightCount = 0;
   for (let tl of junction.trafficLights) {
-    tl.trafficLight = trafficLightCount;
-    trafficLightCount++;
+    tl.trafficLight = true;
   }
-  junction.trafficLightCount = trafficLightCount;
+  for (let ex of junction.exits) {
+    ex.exit = true;
+  }
 }

@@ -18,7 +18,7 @@ function main() {
 
   Export.shortenIds(physicalNetwork, logicalNetwork);
   const network_model = JSON.stringify(Export.makeNetworkModel(physicalNetwork, logicalNetwork));
-  const network_visualization_model = JSON.stringify(Export.makeNetworkVisualizationModel(physicalNetwork, logicalNetwork));
+  const network_visualization_model = JSON.stringify(Export.makeNetworkVisualizationModel(physicalNetwork));
 
   fs.writeFileSync("data/network_model.json", network_model);
   fs.writeFileSync("data/network_visualization_model.json", network_visualization_model);

@@ -34,7 +34,7 @@ function fetchNetwork() {
           const node = e.nodes[i];
           const length = Math.sqrt((node.x - prevNode.x) ** 2 + (node.y - prevNode.y) ** 2);
           cumulativeLength += length;
-          
+
           e.lengths.push(length);
           e.cumulativeLengths.push(cumulativeLength);
 
@@ -49,13 +49,6 @@ function fetchNetwork() {
       for (let e of edgeArr) {
         for (let i = 0; i < e.nodes.length - 1; i++) {
           const node = e.nodes[i].accessibleNodes.push(e.nodes[i + 1]);
-        }
-      }
-
-      for (let j of network_model.junctions) {
-        for (let nid of j.trafficLights) {
-          const node = nodes.get(nid);
-          node.trafficLightsCount = j.trafficLights.length;
         }
       }
 
@@ -99,6 +92,13 @@ function fetchResult() {
         }
       }
 
+      for (let trafficLight of results.trafficLights) {
+        const node = nodes.get(trafficLight.id);
+        node.time = trafficLight.time;
+        node.state = trafficLight.state;
+      }
+
+      resultsReady = true;
       console.log(results);
       console.log("SIMULATION RESULTS LOADED");
     });

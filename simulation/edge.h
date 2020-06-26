@@ -19,7 +19,6 @@ public:
 
 	int getId();
 	float getLength();
-	std::list<float> getTramsDistances();
 	std::list<Tram *> getTrams();
 	Tram *getTramAhead(Tram *tram);
 
@@ -29,7 +28,6 @@ private:
 	Node *m_tail;
 	float m_length;
 	float m_maxspeed;
-	std::list<float> m_tramsDistances;
 	std::list<Tram *> m_trams;
 	std::map<Tram *, Tram *> m_nextTram;
 };

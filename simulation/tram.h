@@ -6,6 +6,8 @@ class Edge;
 class Node;
 class Event;
 class TrafficLight;
+class Junction;
+class Simulation;
 
 #include "include/json.hpp"
 using json = nlohmann::json;
@@ -13,7 +15,7 @@ using json = nlohmann::json;
 class Tram
 {
 public:
-	Tram(int id, Edge *edge);
+	Tram(int id, Edge *edge, Simulation *simulation);
 	void setCurrentEdge(Edge *currentEdge);
 	void setEdgesToVisit(std::list<Edge *> edgesToVisit);
 	void setStopsToVisit(std::list<Node *> nodesToVisit);
@@ -21,14 +23,18 @@ public:
 	void setStopsTimes(std::list<float> stopsTimes);
 
 	void setSpeed(float speed);
+	void setCurrentJunction(Junction *junction);
+	void setWaitingTram(Tram *waitingTram);
 
 	int getId();
 	float getPosition();
 	float getMaxSpeed();
+	float getLength();
+	float getMaxDecelerationDistance();
 	Edge *getCurrentEdge();
 	std::list<Node *> getStopsToVisit();
 	float stoppingDistance();
-	Tram* getTramAhead(float limit);
+	Tram *getTramAhead(float limit);
 
 	enum State
 	{
@@ -39,13 +45,15 @@ public:
 		exchangingPassangers
 	};
 
-	Event *getNextEvent(float time);
-	Event *getEventAfterDeceleration(float time, float *timeToNextEvent, Node *eventCauseNode);
-	Event *addIntermediateEvents(Event *mainEvent, float mainEventPositon, float time, Node *eventCauseNode);
+	void setNextEvent(Event *event);
+	void generateNextEvent(float time);
+	inline Event *addIntermediateEvents(Event *mainEvent, float mainEventPositon, float time, Node *eventCauseNode);
 
 	void enterNextEdge(float time);
 	float exchangePassengers(float time);
-	float waitAtTrafficLights(float time);
+	void notifyTrafficLight(float time); //when traffic light notifies this
+	void notifyTram(float time); //when tram notifies this
+	void endTrip(float time);
 
 	void updateStatistics(float time);
 	void changeState(State state, float time);
@@ -55,10 +63,14 @@ public:
 
 private:
 	int m_id;
+	Simulation *m_simulation;
 	State m_state;
 	float m_position;
 	float m_speed;
 	Edge *m_currentEdge;
+	Event *m_nextEvent;
+	Junction *m_currentJunction;
+	Tram *m_waitingTram;
 
 	std::list<Edge *> m_edgesToVisit;
 	std::list<Node *> m_stopsToVisit;
@@ -106,7 +118,7 @@ struct TramCollisionException : public std::exception
 {
 	std::string m_msg;
 
-	TramCollisionException(Tram *tram, Tram* tramAhead);
+	TramCollisionException(Tram *tram, Tram *tramAhead);
 
 	const char *what() const throw()
 	{

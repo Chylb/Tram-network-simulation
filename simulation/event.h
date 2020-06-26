@@ -12,11 +12,9 @@ class TrafficLight;
 struct Event
 {
     Event(float time);
-
     virtual void processEvent() = 0;
-    
+
     float m_time;
-    Simulation *m_simulation;
 
     struct CompareTime
     {
@@ -30,15 +28,20 @@ struct Event
 struct TramEvent : public Event
 {
     TramEvent(Tram *tram, float time);
-    void addNextEvent();
-
     Tram *m_tram;
 };
 
 struct EventTramDeploy : public TramEvent
 {
     EventTramDeploy(std::list<Node *> tripStops, std::list<TrafficLight *> tripTrafficLights, std::list<float> stopsTimes, std::list<Edge *> tripPath, Simulation *simulation, int tramId);
-    Edge *m_firstEdge;
+    Simulation *m_simulation;
+    void processEvent();
+};
+
+struct EventTramSpawn : public TramEvent
+{
+    EventTramSpawn(Tram *tram, float time, Simulation *simulation);
+    Simulation *m_simulation;
     void processEvent();
 };
 
@@ -52,13 +55,6 @@ struct EventCheckForCollisions : public TramEvent
 {
     EventCheckForCollisions(Tram *tram, float time);
     void processEvent();
-};
-
-struct EventBeginDeceleration : public TramEvent
-{
-    EventBeginDeceleration(Tram *tram, float time, Node *target);
-    void processEvent();
-    Node *m_target;
 };
 
 struct EventEndDeceleration : public TramEvent
@@ -78,12 +74,6 @@ struct EventEnterNewEdge : public TramEvent
 struct EventPassangerExchange : public TramEvent
 {
     EventPassangerExchange(Tram *tram, float time);
-    void processEvent();
-};
-
-struct EventWaitAtTrafficLights : public TramEvent
-{
-    EventWaitAtTrafficLights(Tram *tram, float time);
     void processEvent();
 };
 

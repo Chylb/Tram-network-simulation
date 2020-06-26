@@ -4,6 +4,7 @@ const edgeArr = [];
 const stops = [];
 const trafficLights = [];
 let physicalNetworkReady = false;
+let resultsReady = false;
 
 let trams = [];
 
@@ -104,16 +105,18 @@ function draw() {
     drawWay(edge);
   }
 
-  strokeWeight(3);
-  fill(0, 0, 0, 0);
-  for (let tl of trafficLights) {
-    drawTrafficLight(tl);
-  }
+  if (resultsReady) {
+    strokeWeight(3);
+    fill(0, 0, 0, 0);
+    for (let tl of trafficLights) {
+      drawTrafficLight(tl);
+    }
 
-  strokeWeight(3);
-  stroke(0);
-  for (let tram of trams) {
-    drawTram(tram);
+    strokeWeight(3);
+    stroke(0);
+    for (let tram of trams) {
+      drawTram(tram);
+    }
   }
 
   strokeWeight(7);
@@ -179,10 +182,14 @@ function drawWay(way) {
 }
 
 function drawTrafficLight(node) {
-  const phaseDuration = 20.0;
-  const phaseTime = time % (node.trafficLightsCount * phaseDuration);
-  const poff = phaseTime - node.trafficLight * phaseDuration;
-  if (0.0 <= poff && poff < phaseDuration) {
+  let i = 0;
+  while (node.time[i + 1] < time)
+    ++i;
+
+  const state = node.state[i];
+
+
+  if (state == 1) {
     stroke(0, 255, 0);
   }
   else {

@@ -4,7 +4,7 @@ module.exports = {
     createRoutes: function (physicalNetwork, schedule, logicalNetwork) {
         routeStart = new Map();
         routeEnd = new Map();
-
+        
         routeStart.set("Wzgórza Krzesławickie - Salwator", 213578451);
         routeEnd.set("Wzgórza Krzesławickie - Salwator", 2419732952);
         routeStart.set("Salwator - Wzgórza Krzesławickie", 2419732952);
@@ -59,12 +59,12 @@ module.exports = {
         routeEnd.set("Czerwone Maki P+R - Krowodrza Górka", 2423851561);
         routeStart.set("Krowodrza Górka - Czerwone Maki P+R", 257655889);
         routeEnd.set("Krowodrza Górka - Czerwone Maki P+R", 2017955948);
-
+        
         routeStart.set("Borek Fałęcki - Dworzec Towarowy", 321429867);
-        routeEnd.set("Borek Fałęcki - Dworzec Towarowy", 4559858147);
-        routeStart.set("Dworzec Towarowy - Borek Fałęcki", 2423804378);
+        routeEnd.set("Borek Fałęcki - Dworzec Towarowy", 2420286330);
+        routeStart.set("Dworzec Towarowy - Borek Fałęcki", 2420286329);
         routeEnd.set("Dworzec Towarowy - Borek Fałęcki", 321429856);
-
+        
         routeStart.set("Mały Płaszów P+R - Cichy Kącik", 1889519517);
         routeEnd.set("Mały Płaszów P+R - Cichy Kącik", 2423298435);
         routeStart.set("Cichy Kącik - Mały Płaszów P+R", 2419831874);
@@ -72,24 +72,24 @@ module.exports = {
 
         routeStart.set("Borek Fałęcki - Kopiec Wandy", 321429867);
         routeEnd.set("Borek Fałęcki - Kopiec Wandy", 213578731);
-        routeStart.set("Kopiec Wandy - Borek Fałęcki", 773635797);
+        routeStart.set("Kopiec Wandy - Borek Fałęcki", 2426893478);
         routeEnd.set("Kopiec Wandy - Borek Fałęcki", 321429856);
-
+        
         routeStart.set("Kurdwanów P+R - Bronowice Małe", 5728702340);
         routeEnd.set("Kurdwanów P+R - Bronowice Małe", 2419986541);
         routeStart.set("Bronowice Małe - Kurdwanów P+R", 2419986540);
         routeEnd.set("Bronowice Małe - Kurdwanów P+R", 289685340);
-
+        
         routeStart.set("Krowodrza Górka - Kurdwanów P+R", 257655889);
         routeEnd.set("Krowodrza Górka - Kurdwanów P+R", 289685340);
         routeStart.set("Kurdwanów P+R - Krowodrza Górka", 5728702340);
-        routeEnd.set("Kurdwanów P+R - Krowodrza Górka", 639603980);
-
+        routeEnd.set("Kurdwanów P+R - Krowodrza Górka", 2423851561);
+        
         routeStart.set("Czerwone Maki P+R - Wzgórza Krzesławickie", 2017955951);
         routeEnd.set("Czerwone Maki P+R - Wzgórza Krzesławickie", 2426087293);
         routeStart.set("Wzgórza Krzesławickie - Czerwone Maki P+R", 213578451);
         routeEnd.set("Wzgórza Krzesławickie - Czerwone Maki P+R", 2017955948);
-
+        
         let id = 0;
 
         for (let line of schedule.lines) {

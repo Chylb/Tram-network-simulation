@@ -7,6 +7,7 @@
 #include "trafficLight.h"
 #include "edge.h"
 #include "tram.h"
+#include "junction.h"
 
 Simulation::Simulation(json networkModel)
 {
@@ -17,11 +18,16 @@ Simulation::Simulation(json networkModel)
 		Node *node;
 		if (jNode.contains("trafficLight"))
 		{
-			node = new TrafficLight(id, jNode["trafficLight"]);
+			node = new TrafficLight(id);
+			m_trafficLights.push_back((TrafficLight *)node);
+		}
+		else if (jNode.contains("exit"))
+		{
+			node = new Node(id, false, true, false);
 		}
 		else if (jNode.contains("stopName"))
 		{
-			node = new Node(id, false, true);
+			node = new Node(id, false, false, true);
 		}
 		else
 			node = new Node(id);
@@ -31,10 +37,19 @@ Simulation::Simulation(json networkModel)
 
 	for (json jJunction : networkModel["junctions"])
 	{
+		auto junction = new Junction();
+
 		for (int trafficLightId : jJunction["trafficLights"])
 		{
 			TrafficLight *trafficLight = (TrafficLight *)m_nodes[trafficLightId];
-			trafficLight->setPhaseCount(jJunction["trafficLights"].size());
+			trafficLight->setJunction(junction);
+			junction->addTrafficLight(trafficLight);
+		}
+
+		for (int exitId : jJunction["exits"])
+		{
+			Node *exit = m_nodes[exitId];
+			junction->addJunctionExit(exit);
 		}
 	}
 
@@ -133,7 +148,6 @@ Simulation::Simulation(json networkModel)
 		}
 
 		auto event = new EventTramDeploy(tripStops, tripTrafficLights, stopTimes, tripPath, this, tramId);
-		event->m_simulation = this;
 		addEvent(event);
 
 		tramId++;
@@ -149,7 +163,16 @@ void Simulation::run()
 		auto event = m_eventQueue.top();
 		m_eventQueue.pop();
 
+		auto deletedEvent = m_removedEvents.find(event);
+		if (deletedEvent != m_removedEvents.end())
+		{
+			m_removedEvents.erase(deletedEvent);
+			delete event;
+			continue;
+		}
+
 		time = event->m_time;
+
 		//std::cout << time << std::endl;
 
 		for (auto tram : m_trams)
@@ -188,6 +211,14 @@ void Simulation::addEvent(Event *event)
 	m_eventQueue.push(event);
 }
 
+void Simulation::removeEvent(Event *event)
+{
+	if (event != nullptr)
+	{
+		m_removedEvents.insert(event);
+	}
+}
+
 json Simulation::getResults()
 {
 	json results;
@@ -198,6 +229,9 @@ json Simulation::getResults()
 
 	for (auto tram : m_trams)
 		results["trams"].push_back(tram->getHistory());
+
+	for (auto trafficLight : m_trafficLights)
+		results["trafficLights"].push_back(trafficLight->getHistory());
 
 	return results;
 }
