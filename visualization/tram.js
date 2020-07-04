@@ -22,20 +22,16 @@ function drawTram(tram) {
 
   const dt = time - tram.time[i];
 
+  fill(255/102*tram.passengers[i]);
+
   if (state == 1) {
-    fill(0, 0, 255);
     position += accXofT(dt, v0);
   }
   else if (state == 2) {
-    fill(255, 0, 0);
     position += decXofT(dt, v0);
   }
   else if (state == 3) {
-    fill(255, 0, 255);
     position += v0 * dt;
-  }
-  else {
-    fill(0, 0, 0);
   }
 
   let j = 1;
@@ -54,7 +50,7 @@ function drawTram(tram) {
   const y = tail.y + unitVectorY * position;
 
   const p = tr(x, y);
-  circle(p[0], p[1], 11)
+  circle(p[0], p[1], 15)
 
   if (tram.marked ) {
     stroke(0, 0, 255);
@@ -62,7 +58,6 @@ function drawTram(tram) {
     circle(p[0], p[1], 25);
     stroke(0);
   }
-
 }
 
 function tramPosition(tram) {
@@ -80,6 +75,8 @@ function tramPosition(tram) {
   const v0 = tram.speed[i];
 
   const dt = time - tram.time[i];
+
+  fill(255 / 102 * tram.passengers[i]);
 
   if (state == 1) {
     position += accXofT(dt, v0);

@@ -8,9 +8,43 @@
 #include "edge.h"
 #include "tram.h"
 #include "junction.h"
+#include "routeNode.h"
+#include "routeEdge.h"
+#include "tramStop.h"
+
 
 Simulation::Simulation(json networkModel)
 {
+	for (json jRouteNode : networkModel["routeNodes"])
+	{
+		std::string name = jRouteNode["name"];
+		auto routeNode = new RouteNode(name);
+		m_routeNodes[name] = routeNode;
+	}
+
+	for (json jRouteEdge : networkModel["routeEdges"])
+	{
+		auto head = m_routeNodes[jRouteEdge["head"]];
+		auto tail = m_routeNodes[jRouteEdge["tail"]];
+		std::list<int> lines = jRouteEdge["lines"];
+
+		auto routeEdge = new RouteEdge(lines, tail, head);
+
+		tail->addOutgoingEdge(routeEdge);
+		head->addIncomingEdge(routeEdge);
+	}
+
+	m_routeNodeArray = new RouteNode *[m_routeNodes.size()];
+
+	auto it = m_routeNodes.begin();
+	for (int i = 0; i < m_routeNodes.size(); ++i)
+	{
+		m_routeNodeArray[i] = (*it).second;
+		it++;
+	}
+
+	/////////////////////////////////////////////////
+
 	for (json jNode : networkModel["nodes"])
 	{
 		int id = jNode["id"];
@@ -27,7 +61,8 @@ Simulation::Simulation(json networkModel)
 		}
 		else if (jNode.contains("stopName"))
 		{
-			node = new Node(id, false, false, true);
+			auto routeNode = m_routeNodes[jNode["stopName"]];
+			node = new TramStop(id, routeNode);
 		}
 		else
 			node = new Node(id);
@@ -87,7 +122,7 @@ Simulation::Simulation(json networkModel)
 			auto n1 = m_nodes[*currentStop];
 			auto n2 = m_nodes[*nextStop];
 
-			auto pathAndLights = Graph::findPath(n1, n2);
+			auto pathAndLights = Graph::findTramPath(n1, n2);
 			auto path = pathAndLights.first;
 			auto trafficLights = pathAndLights.second;
 			routePath.splice(routePath.end(), path);
@@ -105,6 +140,11 @@ Simulation::Simulation(json networkModel)
 	for (json jTrip : networkModel["trips"])
 	{
 		int routeId = jTrip["route"];
+
+		if (tramId == 1090)
+		{
+			int deb = 3;
+		}
 
 		std::list<int> stopsIds = networkModel["routes"][routeId]["stops"];
 		std::list<float> stopTimes = jTrip["times"];
@@ -126,31 +166,50 @@ Simulation::Simulation(json networkModel)
 
 		std::transform(stopTimes.begin(), stopTimes.end(), stopTimes.begin(), [](float x) -> float { return 60 * x; }); //transforming minutes to seconds
 
-		std::list<Node *> tripStops;
+		std::list<TramStop *> tripStops;
 		for (auto sId : stopsIds)
-			tripStops.push_back(m_nodes[sId]);
+			tripStops.push_back((TramStop *)m_nodes[sId]);
 
 		auto tripPath = std::list<Edge *>(routesPaths[routeId]);
 		auto tripTrafficLights = std::list<TrafficLight *>(routesTrafficLights[routeId]);
 
-		while (tripPath.front()->getTail() != tripStops.front())
+		while (tripPath.front()->getTail() != (Node *)tripStops.front())
 		{
 			tripPath.pop_front();
 			if (tripPath.front()->getTail()->isTrafficLight())
 				tripTrafficLights.pop_front();
 		}
 
-		while (tripPath.back()->getHead() != tripStops.back())
+		while (tripPath.back()->getHead() != (Node *)tripStops.back())
 		{
 			tripPath.pop_back();
 			if (tripPath.back()->getHead()->isTrafficLight())
 				tripTrafficLights.pop_back();
 		}
 
-		auto event = new EventTramDeploy(tripStops, tripTrafficLights, stopTimes, tripPath, this, tramId);
+		auto event = new EventTramDeploy(tripStops, tripTrafficLights, stopTimes, tripPath, this, tramId, routeId);
 		addEvent(event);
 
 		tramId++;
+	}
+
+	//generating passengers
+	srand(0); 
+	for (int i = 0; i < 10000; ++i)
+	{
+		int ix1 = rand() % m_routeNodes.size();
+		int ix2 = rand() % m_routeNodes.size();
+		while (ix1 == ix2)
+		{
+			ix2 = rand() % m_routeNodes.size();
+		}
+
+		auto node1 = m_routeNodeArray[ix1];
+		auto node2 = m_routeNodeArray[ix2];
+		float time = 16000 + rand() % 70400;
+
+		auto event = new EventSpawnPassenger(time, node1, node2);
+		addEvent(event);
 	}
 }
 
@@ -172,8 +231,6 @@ void Simulation::run()
 		}
 
 		time = event->m_time;
-
-		//std::cout << time << std::endl;
 
 		for (auto tram : m_trams)
 		{
@@ -232,6 +289,9 @@ json Simulation::getResults()
 
 	for (auto trafficLight : m_trafficLights)
 		results["trafficLights"].push_back(trafficLight->getHistory());
+
+	for (auto kvp : m_routeNodes)
+		results["routeNodes"].push_back(kvp.second->getHistory());
 
 	return results;
 }

@@ -1,10 +1,12 @@
 #include "graph.h"
 
 #include "tram.h"
+#include "routeNode.h"
+#include "routeEdge.h"
 
 #include <queue>
 
-std::pair<std::list<Edge*>, std::list<TrafficLight*>> Graph::findPath(Node* source, Node* target)
+std::pair<std::list<Edge*>, std::list<TrafficLight*>> Graph::findTramPath(Node* source, Node* target)
 {
 	typedef std::pair<Node*, float> nodeDistancePair;
 
@@ -60,6 +62,64 @@ std::pair<std::list<Edge*>, std::list<TrafficLight*>> Graph::findPath(Node* sour
 	}
 
 	return std::make_pair(path, trafficLights);
+}
+
+std::unordered_map<RouteNode *, std::list<int>> Graph::findPassengerPath(RouteNode *source, RouteNode *target)
+{
+    std::unordered_map<RouteNode *, RouteEdge *> previous;
+    std::list<RouteNode *> toVisit;
+
+    for (auto e : source->m_outgoingEdges)
+    {
+        previous[e->m_head] = e;
+        toVisit.push_back(e->m_head);
+    }
+
+    if (toVisit.size() == 0)
+    {
+        std::unordered_map<RouteNode *, std::list<int>> res;
+        return res;
+    }
+
+    auto node = toVisit.front();
+    toVisit.pop_front();
+
+    while (node != target)
+    {
+        for (auto e : node->m_outgoingEdges)
+        {
+            if (previous[e->m_head] == nullptr)
+            {
+                previous[e->m_head] = e;
+                toVisit.push_back(e->m_head);
+            }
+        }
+        if (toVisit.size() == 0)
+        {
+            std::unordered_map<RouteNode *, std::list<int>> res;
+            return res;
+        }
+        node = toVisit.front();
+        toVisit.pop_front();
+    }
+
+    std::list<RouteEdge *> path;
+
+    auto edge = previous[target];
+    path.push_front(edge);
+    while (edge->m_tail != source)
+    {
+        edge = previous[edge->m_tail];
+        path.push_front(edge);
+    }
+
+    std::unordered_map<RouteNode *, std::list<int>> result;
+    for (auto e : path)
+    {
+        result[e->m_tail] = e->m_lines;
+    }
+
+    return result;
 }
 
 float Graph::nearestTramBehindDistance(Node* start, float limit) {

@@ -14,7 +14,14 @@ function fetchNetwork() {
         }
 
         if (n.hasOwnProperty("stopName")) {
-          stops.push(n);
+          let routeNodeStops = routeNodeStopsMap.get(n.stopName);
+          if (routeNodeStops == undefined) {
+            routeNodeStopsMap.set(n.stopName, [])
+            routeNodeStops = routeNodeStopsMap.get(n.stopName);
+          }
+
+          routeNodeStops.push(n);
+          tramStops.push(n);
         }
       }
 
@@ -96,6 +103,13 @@ function fetchResult() {
         const node = nodes.get(trafficLight.id);
         node.time = trafficLight.time;
         node.state = trafficLight.state;
+      }
+
+      for (let routeNode of results.routeNodes) {
+        for (let n of routeNodeStopsMap.get(routeNode.name)) {
+          n.time = [...routeNode.time];
+          n.passengers = [...routeNode.passenger];
+        }
       }
 
       resultsReady = true;

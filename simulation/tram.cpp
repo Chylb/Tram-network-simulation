@@ -1,12 +1,14 @@
 #include "tram.h"
 
+#include <cmath>
+
 #include "edge.h"
 #include "event.h"
 #include "trafficLight.h"
 #include "junction.h"
 #include "simulation.h"
-
-#include <cmath>
+#include "passenger.h"
+#include "tramStop.h"
 
 Tram::Tram(int id, Edge *edge, Simulation *simulation)
 {
@@ -124,7 +126,7 @@ void Tram::generateNextEvent(float time)
                 }
                 else
                 {
-                    nextEvent = new EventPassangerExchange(this, time); //edge case, happens only at the beginning of the tram's trip
+                    nextEvent = new EventBeginPassangerExchange(this, time); //it is sometimes needed
                 }
             }
             else
@@ -133,7 +135,8 @@ void Tram::generateNextEvent(float time)
                 {
                     TrafficLight *trafficLight = (TrafficLight *)eventCauseNode;
 
-                    if (trafficLight->requestGreen(this, time))
+                    //checking whether tram is currently on a junction prevents adding multiple requests
+                    if (m_currentJunction == nullptr && trafficLight->requestGreen(this, time)) 
                     {
                         m_trafficLightsToVisit.pop_front();
                         return generateNextEvent(time);
@@ -144,7 +147,7 @@ void Tram::generateNextEvent(float time)
                 timeToNextEvent = dec_t_of_v(0.0, m_speed);
 
                 if (eventCause == tramStop)
-                    nextEvent = new EventPassangerExchange(this, time + timeToNextEvent);
+                    nextEvent = new EventBeginPassangerExchange(this, time + timeToNextEvent);
                 else
                     nextEvent = new EventEndDeceleration(this, time + timeToNextEvent, 0.0);
             }
@@ -348,20 +351,78 @@ void Tram::enterNextEdge(float time)
     addHistoryRow(time);
 }
 
-float Tram::exchangePassengers(float time)
+void Tram::beginPassengerExchange(float time)
 {
-    changeState(Tram::resting, time);
-    m_position = m_currentEdge->getLength();
     m_speed = 0.0;
+    changeState(resting, time);
 
-    float stopDuration = m_stopsTimes.front() - time;
-    if (stopDuration < 10.0)
-        stopDuration = 10.0;
+    auto tramStop = m_stopsToVisit.front();
+    tramStop->notifyPassengers(time, this);
 
-    m_stopsToVisit.pop_front();
-    m_stopsTimes.pop_front();
+    for (auto passenger : m_passengers)
+    {
+        passenger->notifyInside(time, tramStop);
+    }
 
-    return stopDuration;
+    auto event = new EventPassangerExchangeUpdate(this, time + c_doorOpeningTime);
+    setNextEvent(event);
+}
+
+void Tram::updatePassengerExchange(float time)
+{
+    auto node = m_stopsToVisit.front()->m_routeNode;
+    Event *event;
+    if (m_exitingPassengers.size() > 0)
+    {
+        auto passenger = m_exitingPassengers.front();
+        m_exitingPassengers.pop_front();
+        passenger->exitTram(time, node);
+        m_passengers.remove(passenger);
+        addHistoryRow(time);
+
+        event = new EventPassangerExchangeUpdate(this, time + c_passengerEnteringTime);
+    }
+    else if (m_enteringPassengers.size() > 0 && m_passengers.size() < c_passengerCapacity)
+    {
+        auto passenger = m_enteringPassengers.front();
+        m_enteringPassengers.pop_front();
+        passenger->enterTram(time, this);
+        m_passengers.push_back(passenger);
+        addHistoryRow(time);
+
+        event = new EventPassangerExchangeUpdate(this, time + c_passengerExitingTime);
+    }
+    else if (time < m_stopsTimes.front())
+    {
+        event = new EventPassangerExchangeUpdate(this, m_stopsTimes.front());
+    }
+    else
+    {
+        m_stopsTimes.pop_front();
+        m_stopsToVisit.pop_front();
+
+        if (m_stopsToVisit.size() > 0)
+            generateNextEvent(time + c_doorOpeningTime);
+        else
+            endTrip(time);
+        return;
+    }
+    setNextEvent(event);
+}
+
+void Tram::requestPassengerEntrance(Passenger *passenger)
+{
+    m_enteringPassengers.push_back(passenger);
+}
+
+void Tram::revokePassengerEntranceRequest(Passenger *passenger)
+{
+    m_enteringPassengers.remove(passenger);
+}
+
+void Tram::requestPassengerExit(Passenger *passenger)
+{
+    m_exitingPassengers.push_back(passenger);
 }
 
 void Tram::notifyTrafficLight(float time)
@@ -410,6 +471,8 @@ float Tram::acc_x_of_t(float t, float v0)
 }
 float Tram::acc_t_of_x(float x, float v0)
 {
+    if (x <= 0.0)
+        return 0.0;
     float delta = v0 * v0 + 2.0 * 1.4 * x;
     float t = fabs((-v0 + sqrt(delta)) / (1.4));
     if (std::isnan(t))
@@ -431,6 +494,8 @@ float Tram::dec_x_of_t(float t, float v0)
 }
 float Tram::dec_t_of_x(float x, float v0)
 {
+    if (x <= 0.0)
+        return 0.0;
     float delta = v0 * v0 - 2.0 * 1.4 * x;
     float t = fabs((-v0 + sqrt(delta)) / (1.4));
     if (std::isnan(t))
@@ -477,13 +542,13 @@ void Tram::updateStatistics(float time)
 
 void Tram::updateStatisticsAccelerating(float time)
 {
-    m_position = m_position = m_x0 + acc_x_of_t(time - m_t0, m_v0);
+    m_position = m_x0 + acc_x_of_t(time - m_t0, m_v0);
     m_speed = acc_v_of_t(time - m_t0, m_v0);
 }
 
 void Tram::updateStatisticsDecelerating(float time)
 {
-    m_position = m_position = m_x0 + dec_x_of_t(time - m_t0, m_v0);
+    m_position = m_x0 + dec_x_of_t(time - m_t0, m_v0);
     m_speed = dec_v_of_t(time - m_t0, m_v0);
 }
 
@@ -523,7 +588,7 @@ Edge *Tram::getCurrentEdge()
     return m_currentEdge;
 }
 
-std::list<Node *> Tram::getStopsToVisit()
+std::list<TramStop *> Tram::getStopsToVisit()
 {
     return m_stopsToVisit;
 }
@@ -532,6 +597,11 @@ float Tram::stoppingDistance()
 {
     float t = dec_t_of_v(0.0, m_speed);
     return dec_x_of_t(t, m_speed);
+}
+
+int Tram::getRoute()
+{
+    return m_route;
 }
 
 void Tram::setCurrentEdge(Edge *currentEdge)
@@ -549,7 +619,7 @@ void Tram::setEdgesToVisit(std::list<Edge *> edgesToVisit)
     m_edgesToVisit = edgesToVisit;
 }
 
-void Tram::setStopsToVisit(std::list<Node *> nodesToVisit)
+void Tram::setStopsToVisit(std::list<TramStop *> nodesToVisit)
 {
     m_stopsToVisit = nodesToVisit;
 }
@@ -572,6 +642,11 @@ void Tram::setSpeed(float speed)
 void Tram::setCurrentJunction(Junction *junction)
 {
     m_currentJunction = junction;
+}
+
+void Tram::setRoute(int route)
+{
+    m_route = route;
 }
 
 void Tram::changeState(State state, float time)
@@ -601,6 +676,7 @@ void Tram::addHistoryRow(float time)
     m_positionHistory.push_back(m_position);
     m_speedHistory.push_back(m_speed);
     m_edgeHistory.push_back(m_currentEdge->getId());
+    m_passengerHistory.push_back(m_passengers.size());
 }
 
 json Tram::getHistory()
@@ -612,6 +688,7 @@ json Tram::getHistory()
     history["position"] = m_positionHistory;
     history["speed"] = m_speedHistory;
     history["edge"] = m_edgeHistory;
+    history["passengers"] = m_passengerHistory;
 
     return history;
 }

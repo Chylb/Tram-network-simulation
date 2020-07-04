@@ -28,7 +28,9 @@ module.exports = {
             edges: [],
             junctions: [],
             routes: [],
-            trips: []
+            trips: [],
+            routeNodes: [],
+            routeEdges: [],
         };
 
         for (let [id, node] of physicalNetwork.nodes) {
@@ -87,6 +89,9 @@ module.exports = {
             };
             networkModel.trips.push(export_trip);
         }
+
+        networkModel.routeNodes = logicalNetwork.routeNodes;
+        networkModel.routeEdges = [...logicalNetwork.routeEdges.values()];
 
         return networkModel;
     },

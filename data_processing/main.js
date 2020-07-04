@@ -119,13 +119,46 @@ function processLogicalNetwork(physicalNetwork, raw_schedule) { //creates logica
 
   const ln = { //logical network
     routes: [],
-    trips: []
+    trips: [],
+    routeNodes: [],
+    routeEdges: new Map()
   };
 
   Fix.removeFakeRouteStops(schedule);
 
   Schedule.createRoutes(physicalNetwork, schedule, ln);
   Schedule.createTrips(ln);
+
+  for (let [name, stopsIds] of physicalNetwork.stopsIds) {
+    if (name == undefined)
+      continue;
+
+    const routeNode = {
+      name: name,
+      stops: stopsIds
+    };
+    ln.routeNodes.push(routeNode);
+  }
+
+  for (let route of ln.routes) {
+    for (let i = 0; i < route.stops.length - 1; ++i) {
+      const stopName = physicalNetwork.nodes.get(route.stops[i]).tags.name;
+      const nextStopName = physicalNetwork.nodes.get(route.stops[i + 1]).tags.name;
+
+      let routeEdge = ln.routeEdges.get(stopName + "_" + nextStopName);
+      if (routeEdge == undefined) {
+        routeEdge = {
+          head: nextStopName,
+          tail: stopName,
+          lines: []
+        };
+
+        ln.routeEdges.set(stopName + "_" + nextStopName, routeEdge);
+      }
+
+      routeEdge.lines.push(route.id);
+    }
+  }
 
   return ln;
 }

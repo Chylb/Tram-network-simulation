@@ -8,6 +8,9 @@ class Event;
 class TrafficLight;
 class Junction;
 class Simulation;
+class Passenger;
+class RouteNode;
+class TramStop;
 
 #include "include/json.hpp"
 using json = nlohmann::json;
@@ -18,13 +21,14 @@ public:
 	Tram(int id, Edge *edge, Simulation *simulation);
 	void setCurrentEdge(Edge *currentEdge);
 	void setEdgesToVisit(std::list<Edge *> edgesToVisit);
-	void setStopsToVisit(std::list<Node *> nodesToVisit);
+	void setStopsToVisit(std::list<TramStop *> nodesToVisit);
 	void setTrafficLightsToVisit(std::list<TrafficLight *> nodesToVisit);
 	void setStopsTimes(std::list<float> stopsTimes);
 
 	void setSpeed(float speed);
 	void setCurrentJunction(Junction *junction);
 	void setWaitingTram(Tram *waitingTram);
+	void setRoute(int route);
 
 	int getId();
 	float getPosition();
@@ -32,9 +36,10 @@ public:
 	float getLength();
 	float getMaxDecelerationDistance();
 	Edge *getCurrentEdge();
-	std::list<Node *> getStopsToVisit();
+	std::list<TramStop *> getStopsToVisit();
 	float stoppingDistance();
 	Tram *getTramAhead(float limit);
+	int getRoute();
 
 	enum State
 	{
@@ -50,9 +55,15 @@ public:
 	inline Event *addIntermediateEvents(Event *mainEvent, float mainEventPositon, float time, Node *eventCauseNode);
 
 	void enterNextEdge(float time);
-	float exchangePassengers(float time);
+
+	void beginPassengerExchange(float time);
+	void updatePassengerExchange(float time);
+	void requestPassengerEntrance(Passenger *passenger);
+	void revokePassengerEntranceRequest(Passenger *passenger);
+	void requestPassengerExit(Passenger *passenger);
+
 	void notifyTrafficLight(float time); //when traffic light notifies this
-	void notifyTram(float time); //when tram notifies this
+	void notifyTram(float time);		 //when tram notifies this
 	void endTrip(float time);
 
 	void updateStatistics(float time);
@@ -71,11 +82,16 @@ private:
 	Event *m_nextEvent;
 	Junction *m_currentJunction;
 	Tram *m_waitingTram;
+	int m_route;
 
 	std::list<Edge *> m_edgesToVisit;
-	std::list<Node *> m_stopsToVisit;
+	std::list<TramStop *> m_stopsToVisit;
 	std::list<TrafficLight *> m_trafficLightsToVisit;
 	std::list<float> m_stopsTimes;
+
+	std::list<Passenger *> m_passengers;
+	std::list<Passenger *> m_enteringPassengers;
+	std::list<Passenger *> m_exitingPassengers;
 
 	float getNextStopPosition();
 	float getNextTrafficLightPosition();
@@ -88,6 +104,11 @@ private:
 	static constexpr float c_maxSpeed = 13.0;
 	static constexpr float c_length = 25.0;
 	static constexpr float c_decMaxX = 0.5 * 1.4 * 13.0 / 1.4 * 13.0 / 1.4;
+
+	static constexpr int c_passengerCapacity = 102;
+	static constexpr float c_doorOpeningTime = 3.0;
+	static constexpr float c_passengerEnteringTime = 0.6;
+	static constexpr float c_passengerExitingTime = 0.4;
 
 	//acceleration specifications
 	static float acc_v_of_t(float t, float v0);
@@ -112,6 +133,7 @@ private:
 	std::list<float> m_timeHistory;
 	std::list<float> m_speedHistory;
 	std::list<int> m_edgeHistory;
+	std::list<int> m_passengerHistory;
 };
 
 struct TramCollisionException : public std::exception

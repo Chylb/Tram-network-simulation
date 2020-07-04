@@ -1,7 +1,8 @@
 const nodes = new Map();
 const edges = new Map();
 const edgeArr = [];
-const stops = [];
+const tramStops = [];
+const routeNodeStopsMap = new Map();
 const trafficLights = [];
 let physicalNetworkReady = false;
 let resultsReady = false;
@@ -106,24 +107,25 @@ function draw() {
   }
 
   if (resultsReady) {
-    strokeWeight(3);
+    strokeWeight(2);
     fill(0, 0, 0, 0);
     for (let tl of trafficLights) {
       drawTrafficLight(tl);
     }
 
-    strokeWeight(3);
+    strokeWeight(2);
     stroke(0);
     for (let tram of trams) {
       drawTram(tram);
     }
+
+    strokeWeight(1);
+    stroke(0, 255, 255);
+    for (let s of tramStops) {
+      drawTramStop(s);
+    }
   }
 
-  strokeWeight(7);
-  stroke(0, 255, 255, 255);
-  for (let s of stops) {
-    drawNode(s);
-  }
 
   stroke(255, 0, 255);
   strokeWeight(5);
@@ -188,7 +190,6 @@ function drawTrafficLight(node) {
 
   const state = node.state[i];
 
-
   if (state == 1) {
     stroke(0, 255, 0);
   }
@@ -196,7 +197,17 @@ function drawTrafficLight(node) {
     stroke(255, 0, 0);
   }
   const p = tr(node.x, node.y);
-  circle(p[0], p[1], 15);
+  circle(p[0], p[1], 18);
+}
+
+function drawTramStop(stop) {
+  let i = 0;
+  while (i < stop.time.length && stop.time[i + 1] < time) ++i;
+
+  fill(stop.passengers[i]);
+
+  const p = tr(stop.x, stop.y);
+  circle(p[0], p[1], 7);
 }
 
 function mark(id) { //mark node

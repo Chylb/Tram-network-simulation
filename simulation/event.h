@@ -8,6 +8,8 @@ class Edge;
 class Node;
 class Simulation;
 class TrafficLight;
+class TramStop;
+class RouteNode;
 
 struct Event
 {
@@ -33,7 +35,7 @@ struct TramEvent : public Event
 
 struct EventTramDeploy : public TramEvent
 {
-    EventTramDeploy(std::list<Node *> tripStops, std::list<TrafficLight *> tripTrafficLights, std::list<float> stopsTimes, std::list<Edge *> tripPath, Simulation *simulation, int tramId);
+    EventTramDeploy(std::list<TramStop *> tripStops, std::list<TrafficLight *> tripTrafficLights, std::list<float> stopsTimes, std::list<Edge *> tripPath, Simulation *simulation, int tramId, int route);
     Simulation *m_simulation;
     void processEvent();
 };
@@ -71,14 +73,22 @@ struct EventEnterNewEdge : public TramEvent
     Event *m_nextEvent;
 };
 
-struct EventPassangerExchange : public TramEvent
+struct EventBeginPassangerExchange : public TramEvent
 {
-    EventPassangerExchange(Tram *tram, float time);
+    EventBeginPassangerExchange(Tram *tram, float time);
     void processEvent();
 };
 
-struct EventEndTrip : public TramEvent
+struct EventPassangerExchangeUpdate : public TramEvent
 {
-    EventEndTrip(Tram *tram, float time);
+    EventPassangerExchangeUpdate(Tram *tram, float time);
     void processEvent();
+};
+
+struct EventSpawnPassenger : public Event
+{
+    EventSpawnPassenger(float time, RouteNode *startNode, RouteNode *endNode);
+    void processEvent();
+    RouteNode *m_startNode;
+    RouteNode *m_endNode;
 };

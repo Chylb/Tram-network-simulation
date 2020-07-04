@@ -13,6 +13,7 @@
 class Node;
 class Edge;
 class Tram;
+class RouteNode;
 
 using json = nlohmann::json;
 
@@ -27,6 +28,8 @@ public:
 	void removeEvent(Event *event);
 	json getResults();
 
+	std::unordered_map<std::string, RouteNode *> m_routeNodes;
+
 private:
 	std::priority_queue<Event *, std::vector<Event *>, Event::CompareTime> m_eventQueue;
 	std::unordered_set<Event *> m_removedEvents;
@@ -35,4 +38,6 @@ private:
 	std::list<Tram *> m_trams;
 	std::list<Tram *> m_removedTrams;
 	std::list<TrafficLight *> m_trafficLights;
+
+	RouteNode **m_routeNodeArray;
 };

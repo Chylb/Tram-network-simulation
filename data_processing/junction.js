@@ -111,11 +111,11 @@ module.exports = {
     removeTrafficLight(pn.nodes.get(1887812666));
     assignTrafficLightToJunction(pn.nodes.get(1887802518), rondoMogilskie);
     assignTrafficLightToJunction(pn.nodes.get(2420776737), rondoMogilskie);
-    
+
     const łagiewniki = pn.nodes.get(2374339737).junction;
     removeJunctionExit(pn.nodes.get(2374339777));
     removeJunctionExit(pn.nodes.get(629106152));
-    
+
     const nowyBieżanów = pn.nodes.get(287442345).junction;
     removeTrafficLight(pn.nodes.get(287442345));
     removeTrafficLight(pn.nodes.get(1310458659));
@@ -128,6 +128,8 @@ module.exports = {
     assignJunctionExitToJunction(pn.nodes.get(289684900), bieżanowska);
     assignJunctionExitToJunction(pn.nodes.get(293619179), bieżanowska);
     assignJunctionExitToJunction(pn.nodes.get(2424582864), bieżanowska);
+
+    removeTrafficLight(pn.nodes.get(1764579369));
 
     for (let junction of pn.junctions) {
       updateJunction(junction)
