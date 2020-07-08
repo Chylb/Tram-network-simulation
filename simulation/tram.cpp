@@ -1,6 +1,7 @@
 #include "tram.h"
 
 #include <cmath>
+#include <algorithm>
 
 #include "edge.h"
 #include "event.h"
@@ -18,8 +19,9 @@ Tram::Tram(int id, Edge *edge, Simulation *simulation)
     m_state = resting;
     m_position = 0.0;
     m_speed = 0.0;
-    m_currentJunction = nullptr;
     m_nextEvent = nullptr;
+    m_currentJunction = nullptr;
+    m_requestedGreenLight = false;
     m_waitingTram = nullptr;
 }
 
@@ -135,11 +137,17 @@ void Tram::generateNextEvent(float time)
                 {
                     TrafficLight *trafficLight = (TrafficLight *)eventCauseNode;
 
-                    //checking whether tram is currently on a junction prevents adding multiple requests
-                    if (m_currentJunction == nullptr && trafficLight->requestGreen(this, time)) 
+                    if (!m_requestedGreenLight)
                     {
-                        m_trafficLightsToVisit.pop_front();
-                        return generateNextEvent(time);
+                        if (trafficLight->requestGreen(this, time))
+                        {
+                            m_trafficLightsToVisit.pop_front();
+                            return generateNextEvent(time);
+                        }
+                        else
+                        {
+                            m_requestedGreenLight = true;
+                        }
                     }
                 }
 
@@ -335,6 +343,7 @@ void Tram::enterNextEdge(float time)
     m_currentEdge = m_edgesToVisit.front();
     m_edgesToVisit.pop_front();
     m_currentEdge->addTram(this);
+
     if (m_currentEdge->getTail()->isJunctionExit())
     {
         if (m_currentJunction != nullptr)
@@ -342,6 +351,10 @@ void Tram::enterNextEdge(float time)
             m_currentJunction->removeTram(this, time);
             m_currentJunction = nullptr;
         }
+    }
+    else if (m_currentEdge->getTail()->isTrafficLight())
+    {
+        m_currentJunction = ((TrafficLight *)m_currentEdge->getTail())->getJunction();
     }
 
     m_x0 = 0;
@@ -378,7 +391,7 @@ void Tram::updatePassengerExchange(float time)
         m_exitingPassengers.pop_front();
         passenger->exitTram(time, node);
         m_passengers.remove(passenger);
-        addHistoryRow(time);
+        addPassengerHistoryRow(time);
 
         event = new EventPassangerExchangeUpdate(this, time + c_passengerEnteringTime);
     }
@@ -388,7 +401,7 @@ void Tram::updatePassengerExchange(float time)
         m_enteringPassengers.pop_front();
         passenger->enterTram(time, this);
         m_passengers.push_back(passenger);
-        addHistoryRow(time);
+        addPassengerHistoryRow(time);
 
         event = new EventPassangerExchangeUpdate(this, time + c_passengerExitingTime);
     }
@@ -428,6 +441,7 @@ void Tram::requestPassengerExit(Passenger *passenger)
 void Tram::notifyTrafficLight(float time)
 {
     m_trafficLightsToVisit.pop_front();
+    m_requestedGreenLight = false;
     if (m_nextEvent != nullptr)
         m_simulation->removeEvent(m_nextEvent);
 
@@ -639,11 +653,6 @@ void Tram::setSpeed(float speed)
     m_speed = speed;
 }
 
-void Tram::setCurrentJunction(Junction *junction)
-{
-    m_currentJunction = junction;
-}
-
 void Tram::setRoute(int route)
 {
     m_route = route;
@@ -676,6 +685,11 @@ void Tram::addHistoryRow(float time)
     m_positionHistory.push_back(m_position);
     m_speedHistory.push_back(m_speed);
     m_edgeHistory.push_back(m_currentEdge->getId());
+}
+
+void Tram::addPassengerHistoryRow(float time)
+{
+    m_timePassengerHistory.push_back(time);
     m_passengerHistory.push_back(m_passengers.size());
 }
 
@@ -688,6 +702,8 @@ json Tram::getHistory()
     history["position"] = m_positionHistory;
     history["speed"] = m_speedHistory;
     history["edge"] = m_edgeHistory;
+
+    history["passengerTime"] = m_timePassengerHistory;
     history["passengers"] = m_passengerHistory;
 
     return history;

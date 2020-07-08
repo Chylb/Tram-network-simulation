@@ -17,6 +17,7 @@ struct Event
     virtual void processEvent() = 0;
 
     float m_time;
+    bool m_requiresTramsUpdate;
 
     struct CompareTime
     {

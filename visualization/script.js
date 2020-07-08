@@ -148,7 +148,7 @@ function draw() {
   if (s.length == 1) s = "0" + s;
 
   text(h + ":" + m + ":" + s, 10, 40);
-
+  //text("dt = " + simulation_dt, 10, 40);
   //text(Math.floor(time), 10, 40);
 }
 

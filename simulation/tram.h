@@ -26,7 +26,6 @@ public:
 	void setStopsTimes(std::list<float> stopsTimes);
 
 	void setSpeed(float speed);
-	void setCurrentJunction(Junction *junction);
 	void setWaitingTram(Tram *waitingTram);
 	void setRoute(int route);
 
@@ -70,6 +69,7 @@ public:
 	void changeState(State state, float time);
 
 	void addHistoryRow(float time);
+	void addPassengerHistoryRow(float time);
 	json getHistory();
 
 private:
@@ -81,6 +81,7 @@ private:
 	Edge *m_currentEdge;
 	Event *m_nextEvent;
 	Junction *m_currentJunction;
+	bool m_requestedGreenLight;
 	Tram *m_waitingTram;
 	int m_route;
 
@@ -133,6 +134,8 @@ private:
 	std::list<float> m_timeHistory;
 	std::list<float> m_speedHistory;
 	std::list<int> m_edgeHistory;
+
+	std::list<float> m_timePassengerHistory;
 	std::list<int> m_passengerHistory;
 };
 

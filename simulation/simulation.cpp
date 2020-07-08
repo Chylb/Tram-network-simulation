@@ -12,7 +12,6 @@
 #include "routeEdge.h"
 #include "tramStop.h"
 
-
 Simulation::Simulation(json networkModel)
 {
 	for (json jRouteNode : networkModel["routeNodes"])
@@ -141,11 +140,6 @@ Simulation::Simulation(json networkModel)
 	{
 		int routeId = jTrip["route"];
 
-		if (tramId == 1090)
-		{
-			int deb = 3;
-		}
-
 		std::list<int> stopsIds = networkModel["routes"][routeId]["stops"];
 		std::list<float> stopTimes = jTrip["times"];
 
@@ -194,8 +188,8 @@ Simulation::Simulation(json networkModel)
 	}
 
 	//generating passengers
-	srand(0); 
-	for (int i = 0; i < 10000; ++i)
+	srand(0);
+	for (int i = 0; i < 100000; ++i)
 	{
 		int ix1 = rand() % m_routeNodes.size();
 		int ix2 = rand() % m_routeNodes.size();
@@ -232,10 +226,11 @@ void Simulation::run()
 
 		time = event->m_time;
 
-		for (auto tram : m_trams)
-		{
-			tram->updateStatistics(time);
-		}
+		if (event->m_requiresTramsUpdate)
+			for (auto tram : m_trams)
+			{
+				tram->updateStatistics(time);
+			}
 
 		try
 		{

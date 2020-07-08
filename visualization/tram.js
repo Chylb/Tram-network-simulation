@@ -10,19 +10,17 @@ function drawTram(tram) {
   if (time < tram.t0 || tram.t1 < time)
     return;
 
-  let i = 0;
-  while (tram.time[i + 1] < time)
-    ++i;
+  const row = tram.rowsTree.find(time);
+  const edge = row.edge;
+  let position = row.position;
+  const state = row.state;
+  const v0 = row.speed;
+  const dt = time - row.time;
 
-  const edge = tram.edge[i];
-
-  let position = tram.position[i];
-  const state = tram.state[i];
-  const v0 = tram.speed[i];
-
-  const dt = time - tram.time[i];
-
-  fill(255/102*tram.passengers[i]);
+  const passenerRow = tram.passengerRowsTree.find(time);
+  if (passenerRow == undefined)
+    console.log(tram);
+  fill(255 / 102 * passenerRow.passengers);
 
   if (state == 1) {
     position += accXofT(dt, v0);
@@ -52,11 +50,14 @@ function drawTram(tram) {
   const p = tr(x, y);
   circle(p[0], p[1], 15)
 
-  if (tram.marked ) {
+  if (tram.marked) {
     stroke(0, 0, 255);
+    strokeWeight(4);
     fill(0, 0, 0, 0);
-    circle(p[0], p[1], 25);
+    circle(p[0], p[1], 30);
+
     stroke(0);
+    strokeWeight(3);
   }
 }
 
@@ -64,19 +65,12 @@ function tramPosition(tram) {
   if (time < tram.t0 || tram.t1 < time)
     return [NaN, NaN];
 
-  let i = 0;
-  while (tram.time[i + 1] < time)
-    ++i;
-
-  const edge = tram.edge[i];
-
-  let position = tram.position[i];
-  const state = tram.state[i];
-  const v0 = tram.speed[i];
-
-  const dt = time - tram.time[i];
-
-  fill(255 / 102 * tram.passengers[i]);
+  const row = tram.rowsTree.find(time);
+  const edge = row.edge;
+  let position = row.position;
+  const state = row.state;
+  const v0 = row.speed;
+  const dt = time - row.time;
 
   if (state == 1) {
     position += accXofT(dt, v0);

@@ -5,23 +5,25 @@ module.exports = {
         fixedNames.set("Św. Wawrzyńca", "Św.Wawrzyńca");
         fixedNames.set("Elektromontaż N/Ż", "Elektromontaż");
         fixedNames.set("Plac Centralny im. R. Reagana", "Plac Centralny im. R.Reagana");
-        fixedNames.set("Os. Kolorowe", "Os.Kolorowe");
-        fixedNames.set("Os. Zgody", "Os.Zgody");
+        //fixedNames.set("Os. Kolorowe", "Os.Kolorowe");
+        //fixedNames.set("Os. Zgody", "Os.Zgody");
         fixedNames.set("Kopiec Wandy NŻ", "Kopiec Wandy");
+        fixedNames.set("Os.Złotego Wieku", "Os. Złotego Wieku");
 
         for (let stop of pn.stops) {
             const fixedName = fixedNames.get(stop.tags.name);
             if (fixedName != undefined)
                 stop.tags.name = fixedName;
-
         }
     },
 
     fixMissingStops: function (pn, stopsTmp) { //fixes missing stops platforms
+        /*
         const czyżynyStop1 = stopsTmp.filter(x => x.id == 2163355803)[0];
         const missingPlatform = pn.nodes.get(2163355804);
         missingPlatform.tags = czyżynyStop1.tags;
         stopsTmp.push(missingPlatform);
+        */
     },
 
     removeBannedNodes: function (pn) { //removes nodes that are not needed or creates problems
@@ -86,9 +88,16 @@ module.exports = {
     //////////////////////////////////////////////////////////////////
 
     removeFakeRouteStops: function (schedule) {
-        schedule.lines[5].direction1.stops.splice(3, 1); //there is no such a stop in this direction
-        schedule.lines[11].direction1.stops.splice(3, 1);
-        schedule.lines[13].direction1.stops.splice(3, 1);
+
+        for (let line of schedule.lines) {
+            if (line.direction1.name.search("Borek Fałęcki -") == 0) { //there is no such a stop in this direction
+                line.direction1.stops.splice(3, 1);
+            }
+
+            if (line.direction2.name.search("Borek Fałęcki -") == 0) {
+                line.direction2.stops.splice(3, 1);
+            }
+        }
     }
 };
 

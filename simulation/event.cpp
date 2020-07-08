@@ -14,11 +14,13 @@
 Event::Event(float time)
 {
 	m_time = time;
+	m_requiresTramsUpdate = false;
 }
 
 TramEvent::TramEvent(Tram *tram, float time) : Event(time)
 {
 	m_tram = tram;
+	m_requiresTramsUpdate = true;
 }
 
 EventTramDeploy::EventTramDeploy(std::list<TramStop *> tripStops, std::list<TrafficLight *> tripTrafficLights, std::list<float> stopsTimes, std::list<Edge *> tripPath, Simulation *simulation, int tramId, int route) : TramEvent(nullptr, stopsTimes.front())
@@ -62,6 +64,7 @@ void EventTramSpawn::processEvent()
 		m_simulation->addTram(m_tram);
 		m_tram->getCurrentEdge()->addTram(m_tram);
 		m_tram->addHistoryRow(m_time);
+		m_tram->addPassengerHistoryRow(m_time);
 		m_tram->beginPassengerExchange(m_time);
 	}
 	else
@@ -134,6 +137,7 @@ void EventBeginPassangerExchange::processEvent()
 
 EventPassangerExchangeUpdate::EventPassangerExchangeUpdate(Tram *tram, float time) : TramEvent(tram, time)
 {
+	m_requiresTramsUpdate = false;
 }
 
 void EventPassangerExchangeUpdate::processEvent()

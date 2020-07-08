@@ -16,6 +16,7 @@ public:
 	TrafficLight(int id);
 	void setJunction(Junction *junction);
 
+	Junction *getJunction();
 	bool requestGreen(Tram *tram, float time);
 	void changeState(bool state, float time);
 

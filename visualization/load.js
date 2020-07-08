@@ -73,7 +73,7 @@ function fetchResult() {
       const results = JSON.parse(text);
 
       for (let tram of results.trams) {
-        tram.rows = [];
+        
         tram.n = tram.time.length;
         if (tram.n == 0)
           continue;
@@ -87,6 +87,8 @@ function fetchResult() {
           tram.edge[i] = edges.get(tram.edge[i]);
         }
 
+        const keys = [];
+        const rows = [];
         for (let i = 0; i < tram.n; i++) {
           const row = {
             time: tram.time[i],
@@ -95,8 +97,24 @@ function fetchResult() {
             speed: tram.speed[i],
             edge: tram.edge[i],
           }
-          tram.rows.push(row);
+          keys.push(tram.time[i]);
+          rows.push(row);
         }
+        tram.rowsTree = new RangeTree(keys, rows);
+        tram.rows = rows;
+
+        const passengerKeys = [];
+        const passengerRows = [];
+        for (let i = 0; i < tram.passengerTime.length; i++) {
+          const passengerRow = {
+            time: tram.passengerTime[i],
+            passengers: tram.passengers[i]
+          }
+          passengerKeys.push(passengerRow.time);
+          passengerRows.push(passengerRow);
+        }
+        tram.passengerRowsTree = new RangeTree(passengerKeys, passengerRows);
+        tram.passengerRows = passengerRows;
       }
 
       for (let trafficLight of results.trafficLights) {

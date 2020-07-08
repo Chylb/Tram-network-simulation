@@ -129,6 +129,33 @@ module.exports = {
     assignJunctionExitToJunction(pn.nodes.get(293619179), bieżanowska);
     assignJunctionExitToJunction(pn.nodes.get(2424582864), bieżanowska);
 
+    const śwGertrudy = {
+      trafficLights: [],
+      exits: []
+    };
+    pn.junctions.push(śwGertrudy);
+    assignTrafficLightToJunction(pn.nodes.get(2418766246), śwGertrudy);
+    assignTrafficLightToJunction(pn.nodes.get(2418766274), śwGertrudy);
+    assignTrafficLightToJunction(pn.nodes.get(2418766260), śwGertrudy);
+    assignJunctionExitToJunction(pn.nodes.get(2418766245), śwGertrudy);
+    assignJunctionExitToJunction(pn.nodes.get(2418766272), śwGertrudy);
+    assignJunctionExitToJunction(pn.nodes.get(2418766269), śwGertrudy);
+
+    const wiadukty = pn.nodes.get(1770978420).junction;
+    assignJunctionExitToJunction(pn.nodes.get(213578402), wiadukty);
+    removeJunctionExit(pn.nodes.get(1770978496));
+    removeJunctionExit(pn.nodes.get(213578407));
+
+    const kocmyrzowskaBidirectionalTracks = {
+      trafficLights: [],
+      exits: []
+    };
+    pn.junctions.push(kocmyrzowskaBidirectionalTracks);
+    assignTrafficLightToJunction(pn.nodes.get(4556178680), kocmyrzowskaBidirectionalTracks);
+    assignTrafficLightToJunction(pn.nodes.get(1770978502), kocmyrzowskaBidirectionalTracks);
+    assignJunctionExitToJunction(pn.nodes.get(4556178677), kocmyrzowskaBidirectionalTracks);
+    assignJunctionExitToJunction(pn.nodes.get(1770978500), kocmyrzowskaBidirectionalTracks);
+
     removeTrafficLight(pn.nodes.get(1764579369));
 
     for (let junction of pn.junctions) {

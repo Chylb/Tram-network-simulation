@@ -14,17 +14,24 @@ void TrafficLight::setJunction(Junction *junction)
     m_junction = junction;
 }
 
+Junction *TrafficLight::getJunction()
+{
+    return m_junction;
+}
+
 bool TrafficLight::requestGreen(Tram *tram, float time)
 {
     return m_junction->requestGreen(tram, this, time);
 }
 
-void TrafficLight::changeState(bool state, float time) {
+void TrafficLight::changeState(bool state, float time)
+{
     m_stateHistory.push_back(state);
     m_timeHistory.push_back(time);
 }
 
-json TrafficLight::getHistory() {
+json TrafficLight::getHistory()
+{
     json history;
     history["id"] = m_id;
     history["time"] = m_timeHistory;

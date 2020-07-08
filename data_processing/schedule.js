@@ -2,116 +2,64 @@ const findPath = require("./graph.js").findPath;
 
 module.exports = {
     createRoutes: function (physicalNetwork, schedule, logicalNetwork) {
-        routeStart = new Map();
-        routeEnd = new Map();
-        
-        routeStart.set("Wzgórza Krzesławickie - Salwator", 213578451);
-        routeEnd.set("Wzgórza Krzesławickie - Salwator", 2419732952);
-        routeStart.set("Salwator - Wzgórza Krzesławickie", 2419732952);
-        routeEnd.set("Salwator - Wzgórza Krzesławickie", 2426087293);
+        routeNodeStart = new Map(); //for given tram stop name (routeNode) designates specific tram stop used as a start of a route. Used by default.
+        routeStart = new Map(); //for given route designates specific tram stop used as a start of a route. Used in certain circumstances.
 
-        routeStart.set("Salwator - Cmentarz Rakowicki", 2419732952);
-        routeEnd.set("Salwator - Cmentarz Rakowicki", 2425718627);
-        routeStart.set("Cmentarz Rakowicki - Salwator", 321458378);
-        routeEnd.set("Cmentarz Rakowicki - Salwator", 2419732952);
+        routeNodeStart.set("Borek Fałęcki", 321429867);
+        routeNodeStart.set("Bronowice Małe", 2419986540);
+        routeNodeStart.set("Bronowice SKA", 2419986540);
+        routeNodeStart.set("Cichy Kącik", 2419831874);
+        routeNodeStart.set("Cmentarz Rakowicki", 321458378);
+        routeNodeStart.set("Czerwone Maki P+R", 2017955951);
+        routeNodeStart.set("Dajwór", 3526833498);
+        routeNodeStart.set("Dworzec Towarowy", 2420286330);
+        routeNodeStart.set("Krowodrza Górka", 257655889);
+        routeNodeStart.set("Kurdwanów P+R", 5728702340);
+        routeNodeStart.set("Mały Płaszów P+R", 1889519517);
+        routeNodeStart.set("Mistrzejowice", 213648443);
+        routeNodeStart.set("Nowy Bieżanów P+R", 287586332);
+        routeNodeStart.set("Os. Piastów", 213646624);
+        routeNodeStart.set("Piasta Kołodzieja", 2427215149);
+        routeNodeStart.set("Pleszów", 1764757832);
+        routeNodeStart.set("Salwator", 2419732952);
+        routeNodeStart.set("TAURON Arena Kraków Wieczysta", 4069652993);
+        routeNodeStart.set("Witosa", 289685344);
+        routeNodeStart.set("Wzgórza Krzesławickie", 213578451);
 
-        routeStart.set("Nowy Bieżanów P+R - Krowodrza Górka", 287586332);
-        routeEnd.set("Nowy Bieżanów P+R - Krowodrza Górka", 257656078);
-        routeStart.set("Krowodrza Górka - Nowy Bieżanów P+R", 257655889);
-        routeEnd.set("Krowodrza Górka - Nowy Bieżanów P+R", 623562103);
+        routeStart.set("Kopiec Wandy - Borek Fałęcki", 773635797);
+        routeStart.set("Łagiewniki - TAURON Arena Kraków Wieczysta", 629106151);
 
-        routeStart.set("Wzgórza Krzesławickie - Bronowice Małe", 213578451);
-        routeEnd.set("Wzgórza Krzesławickie - Bronowice Małe", 2419986541);
-        routeStart.set("Bronowice Małe - Wzgórza Krzesławickie", 2419986540);
-        routeEnd.set("Bronowice Małe - Wzgórza Krzesławickie", 2426087293);
-
-        routeStart.set("TAURON Arena Kraków Wieczysta - Krowodrza Górka", 4069652993);
-        routeEnd.set("TAURON Arena Kraków Wieczysta - Krowodrza Górka", 2423851561);
-        routeStart.set("Krowodrza Górka - TAURON Arena Kraków Wieczysta", 257655889);
-        routeEnd.set("Krowodrza Górka - TAURON Arena Kraków Wieczysta", 639603980);
-
-        routeStart.set("Borek Fałęcki - Bronowice Małe", 321429867);
-        routeEnd.set("Borek Fałęcki - Bronowice Małe", 2419986541);
-        routeStart.set("Bronowice Małe - Borek Fałęcki", 2419986540);
-        routeEnd.set("Bronowice Małe - Borek Fałęcki", 321429856);
-
-        routeStart.set("Bardosa - Nowy Bieżanów P+R", 2194801607);
-        routeEnd.set("Bardosa - Nowy Bieżanów P+R", 287442350);
-        routeStart.set("Nowy Bieżanów P+R - Bardosa", 5322817078);
-        routeEnd.set("Nowy Bieżanów P+R - Bardosa", 773635753);
-
-        routeStart.set("Mały Płaszów P+R - Czerwone Maki P+R", 1889519517);
-        routeEnd.set("Mały Płaszów P+R - Czerwone Maki P+R", 2017955948);
-        routeStart.set("Czerwone Maki P+R - Mały Płaszów P+R", 2017955951);
-        routeEnd.set("Czerwone Maki P+R - Mały Płaszów P+R", 2431520659);
-
-        routeStart.set("Nowy Bieżanów P+R - Bronowice", 5322817078);
-        routeEnd.set("Nowy Bieżanów P+R - Bronowice", 2428098333);
-        routeStart.set("Bronowice - Nowy Bieżanów P+R", 2419959764);
-        routeEnd.set("Bronowice - Nowy Bieżanów P+R", 287442350);
-
-        routeStart.set("Pleszów - Bronowice", 1764757832);
-        routeEnd.set("Pleszów - Bronowice", 2428098333);
-        routeStart.set("Bronowice - Pleszów", 2419959764);
-        routeEnd.set("Bronowice - Pleszów", 2427003514);
-
-        routeStart.set("Czerwone Maki P+R - Krowodrza Górka", 2017955951);
-        routeEnd.set("Czerwone Maki P+R - Krowodrza Górka", 2423851561);
-        routeStart.set("Krowodrza Górka - Czerwone Maki P+R", 257655889);
-        routeEnd.set("Krowodrza Górka - Czerwone Maki P+R", 2017955948);
-        
-        routeStart.set("Borek Fałęcki - Dworzec Towarowy", 321429867);
-        routeEnd.set("Borek Fałęcki - Dworzec Towarowy", 2420286330);
-        routeStart.set("Dworzec Towarowy - Borek Fałęcki", 2420286329);
-        routeEnd.set("Dworzec Towarowy - Borek Fałęcki", 321429856);
-        
-        routeStart.set("Mały Płaszów P+R - Cichy Kącik", 1889519517);
-        routeEnd.set("Mały Płaszów P+R - Cichy Kącik", 2423298435);
-        routeStart.set("Cichy Kącik - Mały Płaszów P+R", 2419831874);
-        routeEnd.set("Cichy Kącik - Mały Płaszów P+R", 2431520659);
-
-        routeStart.set("Borek Fałęcki - Kopiec Wandy", 321429867);
-        routeEnd.set("Borek Fałęcki - Kopiec Wandy", 213578731);
-        routeStart.set("Kopiec Wandy - Borek Fałęcki", 2426893478);
-        routeEnd.set("Kopiec Wandy - Borek Fałęcki", 321429856);
-        
-        routeStart.set("Kurdwanów P+R - Bronowice Małe", 5728702340);
-        routeEnd.set("Kurdwanów P+R - Bronowice Małe", 2419986541);
-        routeStart.set("Bronowice Małe - Kurdwanów P+R", 2419986540);
-        routeEnd.set("Bronowice Małe - Kurdwanów P+R", 289685340);
-        
-        routeStart.set("Krowodrza Górka - Kurdwanów P+R", 257655889);
-        routeEnd.set("Krowodrza Górka - Kurdwanów P+R", 289685340);
-        routeStart.set("Kurdwanów P+R - Krowodrza Górka", 5728702340);
-        routeEnd.set("Kurdwanów P+R - Krowodrza Górka", 2423851561);
-        
-        routeStart.set("Czerwone Maki P+R - Wzgórza Krzesławickie", 2017955951);
-        routeEnd.set("Czerwone Maki P+R - Wzgórza Krzesławickie", 2426087293);
-        routeStart.set("Wzgórza Krzesławickie - Czerwone Maki P+R", 213578451);
-        routeEnd.set("Wzgórza Krzesławickie - Czerwone Maki P+R", 2017955948);
-        
         let id = 0;
 
         for (let line of schedule.lines) {
             dir1Start = routeStart.get(line.direction1.name);
-            dir1End = routeEnd.get(line.direction1.name);
+            if (dir1Start == undefined)
+                dir1Start = routeNodeStart.get(line.direction1.stops[0].name);
+            dir1End = line.direction2.stops[0].name;
 
             dir2Start = routeStart.get(line.direction2.name);
-            dir2End = routeEnd.get(line.direction2.name);
+            if (dir2Start == undefined)
+                dir2Start = routeNodeStart.get(line.direction2.stops[0].name);
+            dir2End = line.direction1.stops[0].name;
 
             let route1;
             let route2;
 
-            if (dir1Start != undefined) {
+            if (dir1Start !== undefined && dir1End !== undefined) {
                 route1 = processRoute(physicalNetwork, line.direction1, dir1Start, dir1End);
                 route1.id = id;
                 id++;
             }
-            if (dir2Start != undefined) {
+            else
+                console.log("No " + line.direction1.name + " endpoints given");
+
+            if (dir2Start !== undefined && dir2End !== undefined) {
                 route2 = processRoute(physicalNetwork, line.direction2, dir2Start, dir2End);
                 route2.id = id;
                 id++;
             }
+            else
+                console.log("No " + line.direction2.name + " endpoints given");
 
             if (route1 != undefined)
                 logicalNetwork.routes.push(route1);
@@ -137,7 +85,11 @@ module.exports = {
                     if (h < 2)
                         h += 24;
 
-                    const ms = stop.schedule[j]["Dzień powszedni"].split(" ");
+                    let ms;
+                    if (stop.schedule[j].hasOwnProperty("Dzień powszedni"))
+                        ms = stop.schedule[j]["Dzień powszedni"].split(" ");
+                    else
+                        ms = [];
 
                     for (let m of ms) {
                         const mn = parseInt(m);
@@ -215,7 +167,7 @@ module.exports = {
     }
 };
 
-function processRoute(physicalNetwork, scheduleRoute, startNodeId, endNodeId) { //finds route's path
+function processRoute(physicalNetwork, scheduleRoute, startNodeId, endRouteNodeName) { //finds route's path
     const route = {
         nodes: [], //list of nodes that the route goes through
         stops: [], //stop nodes
@@ -228,9 +180,14 @@ function processRoute(physicalNetwork, scheduleRoute, startNodeId, endNodeId) { 
     let currStop = initialNode;
     route.stops.push(initialNode.id);
 
-    for (let i = 1; i < scheduleRoute.stops.length - 1; i++) {
+    for (let i = 1; i < scheduleRoute.stops.length; i++) {
         const nextStop = scheduleRoute.stops[i].name;
-        const next2Stop = scheduleRoute.stops[i + 1].name;
+
+        let next2Stop;
+        if (i != scheduleRoute.stops.length - 1)
+            next2Stop = scheduleRoute.stops[i + 1].name;
+        else
+            next2Stop = endRouteNodeName;
 
         let path;
         const target1 = [...physicalNetwork.stopsIds.get(nextStop)];
@@ -262,11 +219,6 @@ function processRoute(physicalNetwork, scheduleRoute, startNodeId, endNodeId) { 
 
         route.stops.push(currStop.id);
     }
-
-    const [dis, lastPath] = findPath(currStop, [endNodeId]);
-    route.nodes = lastPath.concat(route.nodes);
-    route.nodes.reverse();
-    route.stops.push(endNodeId);
 
     return route;
 }

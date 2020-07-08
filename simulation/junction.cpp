@@ -20,8 +20,6 @@ void Junction::addJunctionExit(Node *exit)
 
 bool Junction::requestGreen(Tram *tram, TrafficLight *trafficLight, float time)
 {
-    tram->setCurrentJunction(this);
-
     if (m_greenLight == trafficLight)
     {
         m_tramsOnJunction.push_back(tram);
