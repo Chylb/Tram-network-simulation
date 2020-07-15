@@ -43,6 +43,9 @@ void Tram::generateNextEvent(float time)
     EventCause eventCause;
     Node *eventCauseNode = nullptr;
 
+    if (m_state == exchangingPassangers) //sometimes events happens while exchanging passengers, it prevents unexpected behaviour
+        return;
+
     float nearestEventCausePosition = getNextStopPosition();
     eventCauseNode = m_stopsToVisit.front();
     eventCause = tramStop;
@@ -56,11 +59,13 @@ void Tram::generateNextEvent(float time)
     }
 
     float nextTramPosition = getNextTramPosition(nearestEventCausePosition) - c_length;
+
     if (nextTramPosition < nearestEventCausePosition)
     {
         eventCause = tram;
         nearestEventCausePosition = nextTramPosition;
         eventCauseNode = nullptr;
+        auto tramAhead = getTramAhead(INFINITY);
 
         if (nextTramPosition - m_position - stoppingDistance() < -c_length + 1.0)
         {
@@ -124,6 +129,20 @@ void Tram::generateNextEvent(float time)
                 }
                 else if (eventCause == trafficLight)
                 {
+                    if (!m_requestedGreenLight)
+                    {
+                        TrafficLight *trafficLight = (TrafficLight *)eventCauseNode;
+
+                        if (trafficLight->requestGreen(this, time))
+                        {
+                            m_trafficLightsToVisit.pop_front();
+                            return generateNextEvent(time);
+                        }
+                        else
+                        {
+                            m_requestedGreenLight = true;
+                        }
+                    }
                     nextEvent = nullptr;
                 }
                 else
@@ -266,6 +285,9 @@ float Tram::getNextTrafficLightPosition()
     if (m_trafficLightsToVisit.size() == 0)
         return INFINITY;
 
+    if (m_currentEdge->getTail() == m_trafficLightsToVisit.front())
+        return 0;
+
     float position = m_currentEdge->getLength();
 
     if (m_currentEdge->getHead() == m_trafficLightsToVisit.front())
@@ -367,7 +389,7 @@ void Tram::enterNextEdge(float time)
 void Tram::beginPassengerExchange(float time)
 {
     m_speed = 0.0;
-    changeState(resting, time);
+    changeState(exchangingPassangers, time);
 
     auto tramStop = m_stopsToVisit.front();
     tramStop->notifyPassengers(time, this);
@@ -393,7 +415,7 @@ void Tram::updatePassengerExchange(float time)
         m_passengers.remove(passenger);
         addPassengerHistoryRow(time);
 
-        event = new EventPassangerExchangeUpdate(this, time + c_passengerEnteringTime);
+        event = new EventPassangerExchangeUpdate(this, time + c_passengerExitingTime);
     }
     else if (m_enteringPassengers.size() > 0 && m_passengers.size() < c_passengerCapacity)
     {
@@ -403,7 +425,7 @@ void Tram::updatePassengerExchange(float time)
         m_passengers.push_back(passenger);
         addPassengerHistoryRow(time);
 
-        event = new EventPassangerExchangeUpdate(this, time + c_passengerExitingTime);
+        event = new EventPassangerExchangeUpdate(this, time + c_passengerEnteringTime);
     }
     else if (time < m_stopsTimes.front())
     {
@@ -413,6 +435,9 @@ void Tram::updatePassengerExchange(float time)
     {
         m_stopsTimes.pop_front();
         m_stopsToVisit.pop_front();
+        m_enteringPassengers.clear();
+
+        changeState(resting, time);
 
         if (m_stopsToVisit.size() > 0)
             generateNextEvent(time + c_doorOpeningTime);

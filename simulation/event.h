@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <list>
+#include <unordered_map>
 
 class Tram;
 class Edge;
@@ -88,8 +89,9 @@ struct EventPassangerExchangeUpdate : public TramEvent
 
 struct EventSpawnPassenger : public Event
 {
-    EventSpawnPassenger(float time, RouteNode *startNode, RouteNode *endNode);
+    EventSpawnPassenger(float time, RouteNode *startNode, RouteNode *endNode, std::unordered_map<RouteNode *, std::list<int>> *path);
     void processEvent();
     RouteNode *m_startNode;
     RouteNode *m_endNode;
+    std::unordered_map<RouteNode *, std::list<int>> *m_path;
 };

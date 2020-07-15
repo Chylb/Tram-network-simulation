@@ -27,7 +27,7 @@ EventTramDeploy::EventTramDeploy(std::list<TramStop *> tripStops, std::list<Traf
 {
 	m_simulation = simulation;
 
-	auto firstEdge = tripPath.front(); 
+	auto firstEdge = tripPath.front();
 	tripPath.pop_front();
 	m_tram = new Tram(tramId, firstEdge, m_simulation);
 	m_tram->setStopsToVisit(tripStops);
@@ -50,9 +50,11 @@ EventTramSpawn::EventTramSpawn(Tram *tram, float time, Simulation *simulation) :
 
 void EventTramSpawn::processEvent()
 {
-	auto tramAhead = m_tram->getCurrentEdge()->getTrams().front(); //function getTramAhead doesn't work on a first edge because the tram is not added yet
-	if(tramAhead == nullptr)
-		tramAhead = m_tram->getTramAhead(m_tram->getMaxDecelerationDistance());	
+	Tram* tramAhead = nullptr;
+	if(m_tram->getCurrentEdge()->getTrams().size() > 0)
+		tramAhead = m_tram->getCurrentEdge()->getTrams().front(); //function getTramAhead doesn't work on a first edge because the tram is not added yet
+	if (tramAhead == nullptr)
+		tramAhead = m_tram->getTramAhead(m_tram->getMaxDecelerationDistance());
 
 	float distanceToTramAhead = INFINITY;
 	if (tramAhead != nullptr)
@@ -145,13 +147,14 @@ void EventPassangerExchangeUpdate::processEvent()
 	m_tram->updatePassengerExchange(m_time);
 }
 
-EventSpawnPassenger::EventSpawnPassenger(float time, RouteNode *startNode, RouteNode *endNode) : Event(time)
+EventSpawnPassenger::EventSpawnPassenger(float time, RouteNode *startNode, RouteNode *endNode, std::unordered_map<RouteNode *, std::list<int>> *path) : Event(time)
 {
 	m_startNode = startNode;
 	m_endNode = endNode;
+	m_path = path;
 }
 
 void EventSpawnPassenger::processEvent()
 {
-	auto passenger = new Passenger(m_time, m_startNode, m_endNode);
+	auto passenger = new Passenger(m_time, m_startNode, m_endNode, m_path);
 }

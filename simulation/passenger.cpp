@@ -5,19 +5,20 @@
 #include "routeNode.h"
 #include "tramStop.h"
 
-#include <iostream>
-
-Passenger::Passenger(float time, RouteNode *startNode, RouteNode *endNode)
+Passenger::Passenger(float time, RouteNode *startNode, RouteNode *endNode, std::unordered_map<RouteNode *, std::list<int>> *path)
 {
     m_endNode = endNode;
-    m_path = Graph::findPassengerPath(startNode, endNode);
+    m_path = path;
     m_currentNode = startNode;
+    m_currentTram = nullptr;
     startNode->addPassenger(time, this);
+
+    //addHistoryRow(time);
 }
 
 void Passenger::notifyOutside(float time, Tram *tram)
 {
-    for (int route : m_path[m_currentNode])
+    for (int route : (*m_path)[m_currentNode])
     {
         if (route == tram->getRoute())
         {
@@ -30,7 +31,7 @@ void Passenger::notifyOutside(float time, Tram *tram)
 
 void Passenger::notifyInside(float time, TramStop *tramStop)
 {
-    for (int route : m_path[tramStop->m_routeNode])
+    for (int route : (*m_path)[tramStop->m_routeNode])
     {
         if (route == m_currentTram->getRoute())
             return;
@@ -43,24 +44,36 @@ void Passenger::enterTram(float time, Tram *tram)
 {
     m_currentTram = tram;
     m_currentNode->removePassenger(time, this);
+    m_currentNode = nullptr;
 
     for (auto requestTram : m_entranceRequestsTrams)
         if (requestTram != tram)
             requestTram->revokePassengerEntranceRequest(this);
 
     m_entranceRequestsTrams.clear();
+
+    //addHistoryRow(time);
 }
 
 void Passenger::exitTram(float time, RouteNode *node)
 {
     m_currentTram = nullptr;
     m_currentNode = node;
-    node->addPassenger(time, this);
-    if(node == m_endNode) {
-        node->removePassenger(time, this);
+
+    if (node == m_endNode)
+    {
+        delete this;
     }
+    else
+    {
+        node->addPassenger(time, this);
+    }
+    //addHistoryRow(time);
 }
 
 void Passenger::addHistoryRow(float time)
 {
+    m_timeHistory.push_back(time);
+    m_tramHistory.push_back(m_currentTram);
+    m_nodeHistory.push_back(m_currentNode);
 }

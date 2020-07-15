@@ -6,6 +6,7 @@ const Track = require("./track.js");
 const Junction = require("./junction.js");
 
 const Schedule = require("./schedule.js");
+const RouteNode = require("./routeNode.js");
 
 const Export = require("./export.js");
 
@@ -120,8 +121,8 @@ function processLogicalNetwork(physicalNetwork, raw_schedule) { //creates logica
   const ln = { //logical network
     routes: [],
     trips: [],
-    routeNodes: [],
-    routeEdges: new Map()
+    routeNodes: new Map(), //tram stops with the same name combined together. Nodes that are used by passengers.  
+    routeEdges: new Map() //edges between routeNodes. They are used in passenger pathfinding.
   };
 
   Fix.removeFakeRouteStops(schedule);
@@ -129,36 +130,8 @@ function processLogicalNetwork(physicalNetwork, raw_schedule) { //creates logica
   Schedule.createRoutes(physicalNetwork, schedule, ln);
   Schedule.createTrips(ln);
 
-  for (let [name, stopsIds] of physicalNetwork.stopsIds) {
-    if (name == undefined)
-      continue;
-
-    const routeNode = {
-      name: name,
-      stops: stopsIds
-    };
-    ln.routeNodes.push(routeNode);
-  }
-
-  for (let route of ln.routes) {
-    for (let i = 0; i < route.stops.length - 1; ++i) {
-      const stopName = physicalNetwork.nodes.get(route.stops[i]).tags.name;
-      const nextStopName = physicalNetwork.nodes.get(route.stops[i + 1]).tags.name;
-
-      let routeEdge = ln.routeEdges.get(stopName + "_" + nextStopName);
-      if (routeEdge == undefined) {
-        routeEdge = {
-          head: nextStopName,
-          tail: stopName,
-          lines: []
-        };
-
-        ln.routeEdges.set(stopName + "_" + nextStopName, routeEdge);
-      }
-
-      routeEdge.lines.push(route.id);
-    }
-  }
+  RouteNode.createRouteNodes(physicalNetwork, ln);
+  RouteNode.setRouteNodesProperties(ln);
 
   return ln;
 }
@@ -195,7 +168,7 @@ function processRawSchedule(rawSchedule) { //some trimming of raw data etc.
       schedule.lines[l].direction2.stops[i].schedule = schedule.lines[l].direction2.stops[i].schedule.slice(0, cutIx);
     }
   }
-
+  
   return schedule;
 }
 

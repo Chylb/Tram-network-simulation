@@ -35,31 +35,25 @@ module.exports = {
             dir1Start = routeStart.get(line.direction1.name);
             if (dir1Start == undefined)
                 dir1Start = routeNodeStart.get(line.direction1.stops[0].name);
-            dir1End = line.direction2.stops[0].name;
 
             dir2Start = routeStart.get(line.direction2.name);
             if (dir2Start == undefined)
                 dir2Start = routeNodeStart.get(line.direction2.stops[0].name);
-            dir2End = line.direction1.stops[0].name;
 
             let route1;
             let route2;
 
-            if (dir1Start !== undefined && dir1End !== undefined) {
-                route1 = processRoute(physicalNetwork, line.direction1, dir1Start, dir1End);
+            if (dir1Start !== undefined && dir2Start !== undefined) {
+                route1 = processRoute(physicalNetwork, line.direction1, dir1Start, dir2Start);
                 route1.id = id;
                 id++;
-            }
-            else
-                console.log("No " + line.direction1.name + " endpoints given");
 
-            if (dir2Start !== undefined && dir2End !== undefined) {
-                route2 = processRoute(physicalNetwork, line.direction2, dir2Start, dir2End);
+                route2 = processRoute(physicalNetwork, line.direction2, dir2Start, dir1Start);
                 route2.id = id;
                 id++;
             }
             else
-                console.log("No " + line.direction2.name + " endpoints given");
+                console.log("No " + line.direction1.name + " endpoints given");
 
             if (route1 != undefined)
                 logicalNetwork.routes.push(route1);
@@ -167,7 +161,7 @@ module.exports = {
     }
 };
 
-function processRoute(physicalNetwork, scheduleRoute, startNodeId, endRouteNodeName) { //finds route's path
+function processRoute(physicalNetwork, scheduleRoute, startNodeId, endNodeId) { //finds route's path
     const route = {
         nodes: [], //list of nodes that the route goes through
         stops: [], //stop nodes
@@ -181,13 +175,14 @@ function processRoute(physicalNetwork, scheduleRoute, startNodeId, endRouteNodeN
     route.stops.push(initialNode.id);
 
     for (let i = 1; i < scheduleRoute.stops.length; i++) {
-        const nextStop = scheduleRoute.stops[i].name;
-
+        let nextStop = scheduleRoute.stops[i].name;
         let next2Stop;
-        if (i != scheduleRoute.stops.length - 1)
+
+        if (i < scheduleRoute.stops.length - 1)
             next2Stop = scheduleRoute.stops[i + 1].name;
         else
-            next2Stop = endRouteNodeName;
+            next2Stop = physicalNetwork.nodes.get(endNodeId).tags.name;
+
 
         let path;
         const target1 = [...physicalNetwork.stopsIds.get(nextStop)];
@@ -219,6 +214,6 @@ function processRoute(physicalNetwork, scheduleRoute, startNodeId, endRouteNodeN
 
         route.stops.push(currStop.id);
     }
-
+    route.stops.push(endNodeId); //making a full loop
     return route;
 }

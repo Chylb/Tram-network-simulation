@@ -18,9 +18,8 @@ function drawTram(tram) {
   const dt = time - row.time;
 
   const passenerRow = tram.passengerRowsTree.find(time);
-  if (passenerRow == undefined)
-    console.log(tram);
-  fill(255 / 102 * passenerRow.passengers);
+
+  fill(255 / 310 * passenerRow.passengers);
 
   if (state == 1) {
     position += accXofT(dt, v0);

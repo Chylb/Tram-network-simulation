@@ -158,6 +158,11 @@ module.exports = {
 
     removeTrafficLight(pn.nodes.get(1764579369));
 
+    const borekFałęcki = pn.nodes.get(321429854).junction;
+    removeJunction(pn, borekFałęcki);
+    const salwator = pn.nodes.get(2419720298).junction;
+    removeJunction(pn, salwator);
+
     for (let junction of pn.junctions) {
       updateJunction(junction)
     }
@@ -201,4 +206,13 @@ function updateJunction(junction) {
   for (let ex of junction.exits) {
     ex.exit = true;
   }
+}
+
+function removeJunction(pn, junction) {
+  for (let trafficLight of junction.trafficLights)
+    removeTrafficLight(trafficLight);
+  for (let exit of junction.exits)
+    removeJunctionExit(exit);
+
+  pn.junctions = pn.junctions.filter(x => x != junction);
 }

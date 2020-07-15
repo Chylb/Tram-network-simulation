@@ -21,7 +21,6 @@ function fetchNetwork() {
           }
 
           routeNodeStops.push(n);
-          tramStops.push(n);
         }
       }
 
@@ -73,7 +72,7 @@ function fetchResult() {
       const results = JSON.parse(text);
 
       for (let tram of results.trams) {
-        
+
         tram.n = tram.time.length;
         if (tram.n == 0)
           continue;
@@ -124,9 +123,22 @@ function fetchResult() {
       }
 
       for (let routeNode of results.routeNodes) {
+        const keys = [];
+        const rows = [];
+        for (let i = 0; i < routeNode.time.length; i++) {
+          const row = {
+            time: routeNode.time[i],
+            passengers: routeNode.passenger[i]
+          }
+          keys.push(row.time);
+          rows.push(row);
+        }
+        const routeNodeTree = new RangeTree(keys, rows);
+
         for (let n of routeNodeStopsMap.get(routeNode.name)) {
-          n.time = [...routeNode.time];
-          n.passengers = [...routeNode.passenger];
+          n.rows = rows;
+          n.rowsTree = routeNodeTree;
+          tramStops.push(n);
         }
       }
 

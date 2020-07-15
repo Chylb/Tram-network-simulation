@@ -2,10 +2,15 @@
 
 #include "passenger.h"
 
-RouteNode::RouteNode(std::string name)
+RouteNode::RouteNode(std::string name, std::list<int> generationDistribution, std::list<int> absorptionRate, int expectedGeneratedCount)
 {
     m_name = name;
     addHistoryRow(0.0);
+
+    std::copy(generationDistribution.begin(), generationDistribution.end(), m_generationDistribution);
+    std::copy(absorptionRate.begin(), absorptionRate.end(), m_absorptionRate);
+
+    m_expectedGeneratedCount = expectedGeneratedCount;
 }
 
 void RouteNode::addOutgoingEdge(RouteEdge *edge)
@@ -16,6 +21,18 @@ void RouteNode::addOutgoingEdge(RouteEdge *edge)
 void RouteNode::addIncomingEdge(RouteEdge *edge)
 {
     m_incomingEdges.push_back(edge);
+}
+
+int RouteNode::randomPassengerSpawnHour(std::minstd_rand0 *rng)
+{
+    std::uniform_int_distribution<> passenger_dist(1, m_expectedGeneratedCount);
+
+    float passenger = passenger_dist(*rng);
+    int h = 0;
+    while (m_generationDistribution[h] < passenger)
+        h++;
+
+    return h;
 }
 
 void RouteNode::addPassenger(float time, Passenger *passenger)
@@ -36,6 +53,21 @@ void RouteNode::notifyPassengers(float time, Tram *tram)
     {
         passenger->notifyOutside(time, tram);
     }
+}
+
+int RouteNode::getExpectedGeneratedCount()
+{
+    return m_expectedGeneratedCount;
+}
+
+int RouteNode::getAbsorptionRate(int h)
+{
+    return m_absorptionRate[h];
+}
+
+std::string RouteNode::getName()
+{
+    return m_name;
 }
 
 void RouteNode::addHistoryRow(float time)

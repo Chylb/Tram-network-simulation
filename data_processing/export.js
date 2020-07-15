@@ -31,6 +31,7 @@ module.exports = {
             trips: [],
             routeNodes: [],
             routeEdges: [],
+            passengerCount: 0
         };
 
         for (let [id, node] of physicalNetwork.nodes) {
@@ -90,8 +91,23 @@ module.exports = {
             networkModel.trips.push(export_trip);
         }
 
-        networkModel.routeNodes = logicalNetwork.routeNodes;
+        for (let routeNode of logicalNetwork.routeNodes.values()) {
+            const export_routeNode = {
+                name: routeNode.name,
+                generationDistribution: routeNode.properties.generationDistribution,
+                absorptionRate: routeNode.properties.absorptionRate,
+                expectedGeneratedCount: routeNode.properties.expectedGeneratedCount
+            };
+            networkModel.routeNodes.push(export_routeNode);
+        }
+
         networkModel.routeEdges = [...logicalNetwork.routeEdges.values()];
+
+        let passengerCount = 0;
+        for (let routeNode of networkModel.routeNodes) {
+            passengerCount += routeNode.expectedGeneratedCount;
+        }
+        networkModel.passengerCount = passengerCount;
 
         return networkModel;
     },

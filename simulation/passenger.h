@@ -13,7 +13,7 @@ class TramStop;
 class Passenger
 {
 public:
-    Passenger(float time, RouteNode *startNode, RouteNode *endNode);
+    Passenger(float time, RouteNode *startNode, RouteNode *endNode, std::unordered_map<RouteNode *, std::list<int>> *path);
 
     void notifyOutside(float time, Tram *tram);
     void notifyInside(float time, TramStop *tramStop);
@@ -29,10 +29,11 @@ private:
     RouteNode *m_currentNode;
     Tram *m_currentTram;
     RouteNode *m_endNode;
-    std::unordered_map<RouteNode *, std::list<int>> m_path;
+    std::unordered_map<RouteNode *, std::list<int>> *m_path;
 
     std::list<Tram *> m_entranceRequestsTrams;
 
+    std::list<float> m_timeHistory;
     std::list<Tram *> m_tramHistory;
-    std::list<Tram *> m_timeHistory;
+    std::list<RouteNode *> m_nodeHistory;
 };

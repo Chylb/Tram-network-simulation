@@ -148,7 +148,6 @@ function draw() {
   if (s.length == 1) s = "0" + s;
 
   text(h + ":" + m + ":" + s, 10, 40);
-  //text("dt = " + simulation_dt, 10, 40);
   //text(Math.floor(time), 10, 40);
 }
 
@@ -201,10 +200,8 @@ function drawTrafficLight(node) {
 }
 
 function drawTramStop(stop) {
-  let i = 0;
-  while (i < stop.time.length && stop.time[i + 1] < time) ++i;
-
-  fill(stop.passengers[i]);
+  const row = stop.rowsTree.find(time);
+  fill(255 * row.passengers / 310);
 
   const p = tr(stop.x, stop.y);
   circle(p[0], p[1], 7);

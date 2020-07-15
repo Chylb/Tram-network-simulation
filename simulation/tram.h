@@ -103,13 +103,13 @@ private:
 	void updateStatisticsMoving(float time);
 
 	static constexpr float c_maxSpeed = 13.0;
-	static constexpr float c_length = 25.0;
+	static constexpr float c_length = 50.0;
 	static constexpr float c_decMaxX = 0.5 * 1.4 * 13.0 / 1.4 * 13.0 / 1.4;
 
-	static constexpr int c_passengerCapacity = 102;
+	static constexpr int c_passengerCapacity = 310;
 	static constexpr float c_doorOpeningTime = 3.0;
-	static constexpr float c_passengerEnteringTime = 0.6;
-	static constexpr float c_passengerExitingTime = 0.4;
+	static constexpr float c_passengerEnteringTime = 0.2;
+	static constexpr float c_passengerExitingTime = 0.1;
 
 	//acceleration specifications
 	static float acc_v_of_t(float t, float v0);

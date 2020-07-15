@@ -1,6 +1,7 @@
 #include "simulation.h"
 
 #include <iostream>
+#include <random>
 
 #include "graph.h"
 #include "node.h"
@@ -17,7 +18,11 @@ Simulation::Simulation(json networkModel)
 	for (json jRouteNode : networkModel["routeNodes"])
 	{
 		std::string name = jRouteNode["name"];
-		auto routeNode = new RouteNode(name);
+		std::list<int> generationDistribution = jRouteNode["generationDistribution"];
+		std::list<int> absorptionRate = jRouteNode["absorptionRate"];
+		int expectedGeneratedCount = jRouteNode["expectedGeneratedCount"];
+
+		auto routeNode = new RouteNode(name, generationDistribution, absorptionRate, expectedGeneratedCount);
 		m_routeNodes[name] = routeNode;
 	}
 
@@ -32,7 +37,6 @@ Simulation::Simulation(json networkModel)
 		tail->addOutgoingEdge(routeEdge);
 		head->addIncomingEdge(routeEdge);
 	}
-
 	m_routeNodeArray = new RouteNode *[m_routeNodes.size()];
 
 	auto it = m_routeNodes.begin();
@@ -60,8 +64,15 @@ Simulation::Simulation(json networkModel)
 		}
 		else if (jNode.contains("stopName"))
 		{
-			auto routeNode = m_routeNodes[jNode["stopName"]];
-			node = new TramStop(id, routeNode);
+			if (m_routeNodes.find(jNode["stopName"]) == m_routeNodes.end())
+			{
+				node = new TramStop(id, nullptr);
+			}
+			else
+			{
+				auto routeNode = m_routeNodes[jNode["stopName"]];
+				node = new TramStop(id, routeNode);
+			}
 		}
 		else
 			node = new Node(id);
@@ -142,6 +153,7 @@ Simulation::Simulation(json networkModel)
 
 		std::list<int> stopsIds = networkModel["routes"][routeId]["stops"];
 		std::list<float> stopTimes = jTrip["times"];
+		stopTimes.push_back(0); //last node that completes loop is't included on schedule
 
 		auto sIt = stopsIds.begin();
 		for (auto tIt = stopTimes.begin(); tIt != stopTimes.end();)
@@ -187,22 +199,85 @@ Simulation::Simulation(json networkModel)
 		tramId++;
 	}
 
-	//generating passengers
-	srand(0);
-	for (int i = 0; i < 100000; ++i)
+	//passenger generation
+
+	int passengerCount = networkModel["passengerCount"];
+
+	int sum = 0;
+	int *routeNodeGenerationDistribution = new int[m_routeNodes.size()];
+
+	//routeNode generation distribution calculation
+	for (int i = 0; i < m_routeNodes.size(); i++)
 	{
-		int ix1 = rand() % m_routeNodes.size();
-		int ix2 = rand() % m_routeNodes.size();
-		while (ix1 == ix2)
+		auto routeNode = m_routeNodeArray[i];
+		sum += routeNode->getExpectedGeneratedCount();
+		routeNodeGenerationDistribution[i] = sum;
+	}
+
+	int **routeNodeAbsorptionDistribution = new int *[24];
+	std::uniform_int_distribution<> *absorption_dist = new std::uniform_int_distribution<>[24];
+
+	//routeNode absorption distribution calculation
+	for (int h = 0; h < 24; h++)
+	{
+		routeNodeAbsorptionDistribution[h] = new int[m_routeNodes.size()];
+		sum = 0;
+		for (int i = 0; i < m_routeNodes.size(); i++)
 		{
-			ix2 = rand() % m_routeNodes.size();
+			auto routeNode = m_routeNodeArray[i];
+			sum += routeNode->getAbsorptionRate(h);
+			routeNodeAbsorptionDistribution[h][i] = sum;
 		}
+		absorption_dist[h] = std::uniform_int_distribution<>(0, sum);
+	}
 
+	std::minstd_rand0 rng;
+	std::uniform_int_distribution<> passenger_dist(0, passengerCount);
+	std::uniform_real_distribution<> real_dist(0, 1);
+
+	//finding paths
+	std::unordered_map<RouteNode *, std::list<int>> ***paths = new std::unordered_map<RouteNode *, std::list<int>> **[m_routeNodes.size()];
+
+	for (int i = 0; i < m_routeNodes.size(); ++i)
+	{
+		paths[i] = new std::unordered_map<RouteNode *, std::list<int>> *[m_routeNodes.size()];
+
+		for (int j = 0; j < m_routeNodes.size(); ++j)
+		{
+			auto node1 = m_routeNodeArray[i];
+			auto node2 = m_routeNodeArray[j];
+
+			auto path = Graph::findPassengerPath(node1, node2);
+			paths[i][j] = new std::unordered_map<RouteNode *, std::list<int>>(path);
+		}
+	}
+
+	//generating passengers
+	for (int i = 0; i < passengerCount; ++i)
+	{
+		int r = passenger_dist(rng);
+		int ix1 = 0;
+		while (routeNodeGenerationDistribution[ix1] < r)
+			++ix1;
 		auto node1 = m_routeNodeArray[ix1];
-		auto node2 = m_routeNodeArray[ix2];
-		float time = 16000 + rand() % 70400;
 
-		auto event = new EventSpawnPassenger(time, node1, node2);
+		int h = node1->randomPassengerSpawnHour(&rng);
+
+		int ix2;
+		do
+		{
+			r = absorption_dist[h](rng);
+			ix2 = 0;
+			while (routeNodeAbsorptionDistribution[h][ix2] < r)
+				++ix2;
+		} while (ix1 == ix2);
+		auto node2 = m_routeNodeArray[ix2];
+
+		float time = 3600 * ((float)h + real_dist(rng));
+
+		auto path = paths[ix1][ix2];
+
+		auto event = new EventSpawnPassenger(time, node1, node2, path);
 		addEvent(event);
 	}
 }
