@@ -1,22 +1,31 @@
 <html>
+
 <head>
   <meta charset="UTF-8">
-  
-  <style>
-    body {
-      padding: 0;
-      margin: 0;
-    }
-  </style>
+  <title>Tram network simulation</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
-</head>
 
-<body>
-  <script language="javascript" type="text/javascript" src="load.js"></script>
   <script language="javascript" type="text/javascript" src="script.js"></script>
   <script language="javascript" type="text/javascript" src="tram.js"></script>
   <script language="javascript" type="text/javascript" src="rangeTree.js"></script>
+</head>
+
+<body oncontextmenu="return false">
+  <div id="progressBar">Loading...</div>
+
+  <div id="sliderContainer">
+    <input type="range" min="15650" max="86800" value="17500" class="slider" id="timeSlider">
+    <p id="timeRateValue">Time rate</p>
+    <input type="range" min="0" max="6.9088" step="0.0001" value="2.4" class="slider" id="timeRateSlider">
+  </div>
+
+  <div id="hints">Welcome to the tram network simulation! Move your mouse while holding left button in order to move a
+    camera. Use mouse wheel to zoom in and zoom out. You can use time slider and time rate slider to manipulate time.
+    Tram's color indicates how many passengers it carries. White means it's full and black means it's empty. </div>
+
+  <script language="javascript" type="text/javascript" src="load.js"></script>
 </body>
 
 </html>

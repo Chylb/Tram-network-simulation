@@ -25,11 +25,6 @@ let time = 18000;
 let lastT;
 let paused = false;
 
-document.addEventListener('mousedown', e => {
-  lastX = e.x;
-  lastY = e.y;
-});
-
 document.addEventListener('mousemove', e => {
   if (e.buttons == 0)
     return;
@@ -37,10 +32,14 @@ document.addEventListener('mousemove', e => {
   if (lastX != -1) {
     camX -= (e.x - lastX) / zoomVal;
     camY += (e.y - lastY) / zoomVal;
-  }
 
-  lastX = e.x;
-  lastY = e.y;
+    lastX = e.x;
+    lastY = e.y;
+  }
+});
+
+document.addEventListener('mouseup', e => {
+  lastX = -1;
 });
 
 document.addEventListener('wheel', e => {
@@ -50,20 +49,6 @@ document.addEventListener('wheel', e => {
   wayStep = Math.ceil(0.5 / zoomVal);
 });
 
-document.addEventListener("mousedown", e => {
-  if (e.button == 2) {
-    const x = (e.clientX - windowWidth / 2) / zoomVal + camX;
-    const y = (-e.clientY + windowHeight / 2) / zoomVal + camY;
-
-    const ent = find(x, y);
-    console.log(ent);
-    if (ent.hasOwnProperty("t0"))
-      tmark(ent.id);
-    else
-      mark(ent.id);
-  }
-});
-
 document.addEventListener("keydown", event => {
   if (event.isComposing || event.keyCode === 32) {
     paused = paused ? false : true;
@@ -71,7 +56,24 @@ document.addEventListener("keydown", event => {
 });
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
+  const canvas = createCanvas(windowWidth, windowHeight).elt;
+
+  canvas.onmousedown = e => {
+    lastX = e.x;
+    lastY = e.y;
+
+    if (e.button == 2) {
+      const x = (e.clientX - windowWidth / 2) / zoomVal + camX;
+      const y = (-e.clientY + windowHeight / 2) / zoomVal + camY;
+
+      const ent = find(x, y);
+      console.log(ent);
+      if (ent.hasOwnProperty("t0"))
+        tmark(ent.id);
+      else
+        mark(ent.id);
+    }
+  };
 
   fetchNetwork().then(fetchResult);
 
@@ -93,8 +95,10 @@ function draw() {
   const simulation_dt = time_rate * (newT - lastT) / 1000;
   lastT = newT;
 
-  if (!paused)
+  if (!paused) {
     time = time + simulation_dt;
+    timeSlider.value = time;
+  }
 
   if (!physicalNetworkReady)
     return;
