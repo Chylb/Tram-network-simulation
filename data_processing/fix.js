@@ -1,14 +1,34 @@
 module.exports = {
+    checkStopsNamesCoherency: function (pn, schedule) {
+        for (const line of schedule.lines) {
+            for (const stop of line.direction1.stops) {
+                const nodeIds = pn.stopsIds.get(stop.name);
+                if (nodeIds === undefined)
+                    throw 'ERROR! Tram stop "' + stop.name + '" not found.';
+            }
+            for (const stop of line.direction2.stops) {
+                const nodeIds = pn.stopsIds.get(stop.name);
+                if (nodeIds === undefined)
+                    throw 'ERROR! Tram stop "' + stop.name + '" not found.';
+            }
+        }
+    },
+
     fixStopsNames: function (pn) {
         const fixedNames = new Map();
-        fixedNames.set("Tauron Arena Kraków Al. Pokoju n/ż", "TAURON Arena Kraków Al. Pokoju");
-        fixedNames.set("Św. Wawrzyńca", "Św.Wawrzyńca");
+        //osm stop name, schedule stop name
+
+        fixedNames.set("Tauron Arena Kraków Al. Pokoju n/ż", "TAURON Arena Kraków al. Pokoju");
+        fixedNames.set("Św. Wawrzyńca", "św. Wawrzyńca");
+        fixedNames.set("Św.Gertrudy", "św. Gertrudy");
         fixedNames.set("Elektromontaż N/Ż", "Elektromontaż");
         fixedNames.set("Plac Centralny im. R. Reagana", "Plac Centralny im. R.Reagana");
         //fixedNames.set("Os. Kolorowe", "Os.Kolorowe");
         //fixedNames.set("Os. Zgody", "Os.Zgody");
+        fixedNames.set("Os.Na Skarpie", "Os. Na Skarpie");
         fixedNames.set("Kopiec Wandy NŻ", "Kopiec Wandy");
         fixedNames.set("Os.Złotego Wieku", "Os. Złotego Wieku");
+        fixedNames.set("M1 Al. Pokoju", "M1 al. Pokoju");
 
         for (let stop of pn.stops) {
             const fixedName = fixedNames.get(stop.tags.name);
@@ -18,12 +38,10 @@ module.exports = {
     },
 
     fixMissingStops: function (pn, stopsTmp) { //fixes missing stops platforms
-        /*
         const czyżynyStop1 = stopsTmp.filter(x => x.id == 2163355803)[0];
         const missingPlatform = pn.nodes.get(2163355804);
         missingPlatform.tags = czyżynyStop1.tags;
         stopsTmp.push(missingPlatform);
-        */
     },
 
     removeBannedNodes: function (pn) { //removes nodes that are not needed or creates problems

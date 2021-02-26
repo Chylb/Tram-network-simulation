@@ -2,6 +2,8 @@ const findPath = require("./graph.js").findPath;
 
 module.exports = {
     removeTrackCrossings: function (pn) { //splits nodes with 4 adjacent nodes to 2 nodes with 2 adjacent nodes
+        const exludedNodes = [4556190378];
+
         for (let ji = pn.joints.length - 1; ji >= 0; ji--) {
             const j = pn.joints[ji];
 
@@ -9,6 +11,9 @@ module.exports = {
                 continue;
 
             if (j.accessibleNodes.length == 4)
+                continue;
+
+            if (exludedNodes.includes(j.id))
                 continue;
 
             const vectors = [];

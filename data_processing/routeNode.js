@@ -63,7 +63,7 @@ module.exports = {
 		for (let node of cityCentre)
 			node.properties = central;
 
-		const highInterestNodes = ["Norymberska", "Ruczaj", "Chmieleniec", "Politechnika", "Kombinat", "Uniwersytet Pedagogiczny", "Rondo Mogilskie", "Czerwone Maki P+R" , "Muzeum Narodowe", "Rondo Czyżyńskie", "Kampus UJ"].map(x => ln.routeNodes.get(x));
+		const highInterestNodes = ["Norymberska", "Ruczaj", "Chmieleniec", "Politechnika", "Rondo Mogilskie", "Czerwone Maki P+R" , "Muzeum Narodowe", "Rondo Czyżyńskie", "Kampus UJ"].map(x => ln.routeNodes.get(x));
 		for (let node of highInterestNodes)
 			node.properties = highInterest;
 

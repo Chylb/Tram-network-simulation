@@ -126,6 +126,7 @@ function processLogicalNetwork(physicalNetwork, raw_schedule) { //creates logica
   };
 
   Fix.removeFakeRouteStops(schedule);
+  Fix.checkStopsNamesCoherency(physicalNetwork, schedule);
 
   Schedule.createRoutes(physicalNetwork, schedule, ln);
   Schedule.createTrips(ln);
@@ -168,7 +169,7 @@ function processRawSchedule(rawSchedule) { //some trimming of raw data etc.
       schedule.lines[l].direction2.stops[i].schedule = schedule.lines[l].direction2.stops[i].schedule.slice(0, cutIx);
     }
   }
-  
+
   return schedule;
 }
 

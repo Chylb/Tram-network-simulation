@@ -9,8 +9,19 @@ module.exports = {
         const nCurr = track.nodes[i];
         const nNext = track.nodes[i + 1];
 
-        nCurr.adjacentNodes.push(nPrev);
-        nCurr.adjacentNodes.push(nNext);
+        if (!nCurr.adjacentNodes.includes(nPrev))
+          nCurr.adjacentNodes.push(nPrev);
+        else {
+          //debugger;
+          console.log("WARNING! Track overlap, " + nCurr);
+        }
+
+        if (!nCurr.adjacentNodes.includes(nNext))
+          nCurr.adjacentNodes.push(nNext);
+        else {
+          //debugger;
+          console.log("WARNING! Track overlap, " + nCurr);
+        }
       }
 
       track.nodes[track.nodes.length - 1].adjacentNodes.push(track.nodes[track.nodes.length - 2]);
@@ -22,7 +33,13 @@ module.exports = {
       for (let i = 0; i < track.nodes.length - 1; i++) {
         const node = track.nodes[i];
         const nextNode = track.nodes[i + 1];
-        node.accessibleNodes.push(nextNode);
+
+        if (!node.accessibleNodes.includes(nextNode))
+          node.accessibleNodes.push(nextNode);
+        else {
+          //debugger;
+          console.log("WARNING! Track overlap, " + node);
+        }
       }
   },
 
