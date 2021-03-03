@@ -29,6 +29,7 @@ public:
 	json getResults();
 
 	std::unordered_map<std::string, RouteNode *> m_routeNodes;
+	std::unordered_map<RouteNode*, std::list<int>>** m_passengerPaths;
 
 private:
 	std::priority_queue<Event *, std::vector<Event *>, Event::CompareTime> m_eventQueue;

@@ -15,7 +15,6 @@ class Passenger
 public:
     Passenger(float time, RouteNode *startNode, RouteNode *endNode, std::unordered_map<RouteNode *, std::list<int>> *path);
 
-    void notifyOutside(float time, Tram *tram);
     void notifyInside(float time, TramStop *tramStop);
 
     void enterTram(float time, Tram *tram);
@@ -30,8 +29,6 @@ private:
     Tram *m_currentTram;
     RouteNode *m_endNode;
     std::unordered_map<RouteNode *, std::list<int>> *m_path;
-
-    std::list<Tram *> m_entranceRequestsTrams;
 
     std::list<float> m_timeHistory;
     std::list<Tram *> m_tramHistory;

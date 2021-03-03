@@ -241,19 +241,18 @@ Simulation::Simulation(json networkModel)
 	Timer passengerPathfindingTimer("Passenger pathfinding");
 #endif // LOG_TIME
 	//finding paths
-	std::unordered_map<RouteNode*, std::list<int>>*** paths = new std::unordered_map<RouteNode*, std::list<int>> **[m_routeNodes.size()];
+	m_passengerPaths = new std::unordered_map<RouteNode*, std::list<int>> *[m_routeNodes.size()];
 
 	for (int i = 0; i < m_routeNodes.size(); ++i)
 	{
-		paths[i] = new std::unordered_map<RouteNode*, std::list<int>> *[m_routeNodes.size()];
+		m_passengerPaths[i] = new std::unordered_map<RouteNode*, std::list<int>> [m_routeNodes.size()];
 
 		for (int j = 0; j < m_routeNodes.size(); ++j)
 		{
 			auto node1 = m_routeNodeArray[i];
 			auto node2 = m_routeNodeArray[j];
 
-			auto path = Graph::findPassengerPath(node1, node2);
-			paths[i][j] = new std::unordered_map<RouteNode*, std::list<int>>(path);
+			m_passengerPaths[i][j] = Graph::findPassengerPath(node1, node2);
 		}
 	}
 #ifdef LOG_TIME
@@ -283,9 +282,7 @@ Simulation::Simulation(json networkModel)
 
 		float time = 3600 * ((float)h + real_dist(rng));
 
-		auto path = paths[ix1][ix2];
-
-		auto event = new EventSpawnPassenger(time, node1, node2, path);
+		auto event = new EventSpawnPassenger(time, node1, node2, &m_passengerPaths[ix1][ix2]);
 		addEvent(event);
 	}
 }

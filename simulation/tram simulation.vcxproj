@@ -123,6 +123,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='PerformanceTest|Win32'">
@@ -149,6 +150,9 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>include/json.hpp</PrecompiledHeaderFile>
     </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -159,6 +163,9 @@
     <ClCompile>
       <PrecompiledHeaderFile>include/json.hpp</PrecompiledHeaderFile>
     </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -169,6 +176,10 @@
     <ClCompile>
       <PrecompiledHeaderFile>include/json.hpp</PrecompiledHeaderFile>
     </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <Profile>true</Profile>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="edge.cpp" />
@@ -192,6 +203,7 @@
     <ClInclude Include="graph.h" />
     <ClInclude Include="include\json.hpp" />
     <ClInclude Include="junction.h" />
+    <ClInclude Include="MultilineQueue.hpp" />
     <ClInclude Include="node.h" />
     <ClInclude Include="passenger.h" />
     <ClInclude Include="routeEdge.h" />

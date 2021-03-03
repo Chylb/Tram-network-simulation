@@ -57,8 +57,6 @@ public:
 
 	void beginPassengerExchange(float time);
 	void updatePassengerExchange(float time);
-	void requestPassengerEntrance(Passenger *passenger);
-	void revokePassengerEntranceRequest(Passenger *passenger);
 	void requestPassengerExit(Passenger *passenger);
 
 	void notifyTrafficLight(float time); //when traffic light notifies this
@@ -91,7 +89,6 @@ private:
 	std::list<float> m_stopsTimes;
 
 	std::list<Passenger *> m_passengers;
-	std::list<Passenger *> m_enteringPassengers;
 	std::list<Passenger *> m_exitingPassengers;
 
 	float getNextStopPosition();
