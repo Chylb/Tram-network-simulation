@@ -1,7 +1,10 @@
 #pragma once
 
 #include <list>
+#include <set>
 #include <random>
+
+#include "MultilineQueue.hpp"
 
 class Node;
 class RouteEdge;
@@ -23,9 +26,8 @@ public:
 
     int randomPassengerSpawnHour(std::minstd_rand0 *rng);
 
-    void addPassenger(float time, Passenger *passenger);
-    void removePassenger(float time, Passenger *passenger);
-    void notifyPassengers(float time, Tram *tram);
+    void addPassenger(float time, Passenger *passenger, const std::list<int>& routes);
+    Passenger* dispensePassenger(float time, int route);
 
     int getExpectedGeneratedCount();
     int getAbsorptionRate(int h);
@@ -35,7 +37,9 @@ public:
 
 private:
     std::string m_name;
-    std::list<Passenger *> m_passengers;
+    std::set<Passenger *> m_passengers;
+    int m_passengerCount = 0;
+    MultilineQueue <Passenger, 24> m_passengerQueue;
 
     std::list<RouteEdge *> m_outgoingEdges;
     std::list<RouteEdge *> m_incomingEdges;

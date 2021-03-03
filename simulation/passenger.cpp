@@ -11,22 +11,8 @@ Passenger::Passenger(float time, RouteNode *startNode, RouteNode *endNode, std::
     m_path = path;
     m_currentNode = startNode;
     m_currentTram = nullptr;
-    startNode->addPassenger(time, this);
-
+    startNode->addPassenger(time, this, (*m_path)[m_currentNode]);
     //addHistoryRow(time);
-}
-
-void Passenger::notifyOutside(float time, Tram *tram)
-{
-    for (int route : (*m_path)[m_currentNode])
-    {
-        if (route == tram->getRoute())
-        {
-            tram->requestPassengerEntrance(this);
-            m_entranceRequestsTrams.push_back(tram);
-            return;
-        }
-    }
 }
 
 void Passenger::notifyInside(float time, TramStop *tramStop)
@@ -43,14 +29,7 @@ void Passenger::notifyInside(float time, TramStop *tramStop)
 void Passenger::enterTram(float time, Tram *tram)
 {
     m_currentTram = tram;
-    m_currentNode->removePassenger(time, this);
     m_currentNode = nullptr;
-
-    for (auto requestTram : m_entranceRequestsTrams)
-        if (requestTram != tram)
-            requestTram->revokePassengerEntranceRequest(this);
-
-    m_entranceRequestsTrams.clear();
 
     //addHistoryRow(time);
 }
@@ -66,7 +45,7 @@ void Passenger::exitTram(float time, RouteNode *node)
     }
     else
     {
-        node->addPassenger(time, this);
+        node->addPassenger(time, this, (*m_path)[m_currentNode]);
     }
     //addHistoryRow(time);
 }
