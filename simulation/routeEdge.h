@@ -12,6 +12,7 @@ class RouteEdge
 
 public:
     RouteEdge(std::list<int> lines, RouteNode *tail, RouteNode *head);
+    RouteNode* getHead();
 
 private:
     std::list<int> m_lines;

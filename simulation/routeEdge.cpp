@@ -7,3 +7,7 @@ RouteEdge::RouteEdge(std::list<int> lines, RouteNode *tail, RouteNode *head){
     m_tail = tail;
     m_head = head;
 }
+
+RouteNode* RouteEdge::getHead(){
+    return m_head;
+}   

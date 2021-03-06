@@ -5,7 +5,7 @@
 #include "routeNode.h"
 #include "tramStop.h"
 
-Passenger::Passenger(float time, RouteNode *startNode, RouteNode *endNode, std::unordered_map<RouteNode *, std::list<int>> *path)
+Passenger::Passenger(float time, RouteNode *startNode, RouteNode *endNode, std::unordered_map<RouteNode *, std::list<RouteEdge *>> *path)
 {
     m_endNode = endNode;
     m_path = path;
@@ -17,9 +17,9 @@ Passenger::Passenger(float time, RouteNode *startNode, RouteNode *endNode, std::
 
 void Passenger::notifyInside(float time, TramStop *tramStop)
 {
-    for (int route : (*m_path)[tramStop->m_routeNode])
+    for (auto edge : (*m_path)[tramStop->m_routeNode])
     {
-        if (route == m_currentTram->getRoute())
+        if (edge == m_currentTram->getRouteEdge())
             return;
     }
 

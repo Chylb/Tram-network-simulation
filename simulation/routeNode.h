@@ -24,10 +24,15 @@ public:
     void addOutgoingEdge(RouteEdge *edge);
     void addIncomingEdge(RouteEdge *edge);
 
+    void initializePassengerQueue();
+
+    std::list<RouteEdge *> getOutgoingEdges();
+
     int randomPassengerSpawnHour(std::minstd_rand0 *rng);
 
-    void addPassenger(float time, Passenger *passenger, const std::list<int>& routes);
-    Passenger* dispensePassenger(float time, int route);
+    void addPassenger(float time, Passenger *passenger, const std::list<RouteEdge *> &routes);
+    Passenger *dispensePassenger(float time, RouteEdge *route);
+    int getPassengerCount(RouteEdge *route);
 
     int getExpectedGeneratedCount();
     int getAbsorptionRate(int h);
@@ -39,7 +44,7 @@ private:
     std::string m_name;
     std::set<Passenger *> m_passengers;
     int m_passengerCount = 0;
-    MultilineQueue <Passenger, 24> m_passengerQueue;
+    MultilineQueue<Passenger *, RouteEdge *> m_passengerQueue;
 
     std::list<RouteEdge *> m_outgoingEdges;
     std::list<RouteEdge *> m_incomingEdges;

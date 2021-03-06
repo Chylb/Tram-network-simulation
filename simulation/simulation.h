@@ -14,6 +14,7 @@ class Node;
 class Edge;
 class Tram;
 class RouteNode;
+class RouteEdge;
 
 using json = nlohmann::json;
 
@@ -29,7 +30,7 @@ public:
 	json getResults();
 
 	std::unordered_map<std::string, RouteNode *> m_routeNodes;
-	std::unordered_map<RouteNode*, std::list<int>>** m_passengerPaths;
+	std::unordered_map<RouteNode *, std::list<RouteEdge *>> **m_passengerPaths;
 
 private:
 	std::priority_queue<Event *, std::vector<Event *>, Event::CompareTime> m_eventQueue;

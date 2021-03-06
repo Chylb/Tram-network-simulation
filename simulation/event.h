@@ -11,6 +11,7 @@ class Simulation;
 class TrafficLight;
 class TramStop;
 class RouteNode;
+class RouteEdge;
 
 struct Event
 {
@@ -89,9 +90,9 @@ struct EventPassangerExchangeUpdate : public TramEvent
 
 struct EventSpawnPassenger : public Event
 {
-    EventSpawnPassenger(float time, RouteNode *startNode, RouteNode *endNode, std::unordered_map<RouteNode *, std::list<int>> *path);
+    EventSpawnPassenger(float time, RouteNode *startNode, RouteNode *endNode, std::unordered_map<RouteNode *, std::list<RouteEdge*>> *path);
     void processEvent();
     RouteNode *m_startNode;
     RouteNode *m_endNode;
-    std::unordered_map<RouteNode *, std::list<int>> *m_path;
+    std::unordered_map<RouteNode *, std::list<RouteEdge*>> *m_path;
 };

@@ -44,6 +44,7 @@ Simulation::Simulation(json networkModel)
 	auto it = m_routeNodes.begin();
 	for (int i = 0; i < m_routeNodes.size(); ++i)
 	{
+		(*it).second->initializePassengerQueue();
 		m_routeNodeArray[i] = (*it).second;
 		it++;
 	}
@@ -241,11 +242,11 @@ Simulation::Simulation(json networkModel)
 	Timer passengerPathfindingTimer("Passenger pathfinding");
 #endif // LOG_TIME
 	//finding paths
-	m_passengerPaths = new std::unordered_map<RouteNode*, std::list<int>> *[m_routeNodes.size()];
+	m_passengerPaths = new std::unordered_map<RouteNode*, std::list<RouteEdge*>> *[m_routeNodes.size()];
 
 	for (int i = 0; i < m_routeNodes.size(); ++i)
 	{
-		m_passengerPaths[i] = new std::unordered_map<RouteNode*, std::list<int>> [m_routeNodes.size()];
+		m_passengerPaths[i] = new std::unordered_map<RouteNode*, std::list<RouteEdge*>> [m_routeNodes.size()];
 
 		for (int j = 0; j < m_routeNodes.size(); ++j)
 		{

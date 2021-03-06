@@ -7,13 +7,14 @@
 using json = nlohmann::json;
 
 class RouteNode;
+class RouteEdge;
 class Tram;
 class TramStop;
 
 class Passenger
 {
 public:
-    Passenger(float time, RouteNode *startNode, RouteNode *endNode, std::unordered_map<RouteNode *, std::list<int>> *path);
+    Passenger(float time, RouteNode *startNode, RouteNode *endNode, std::unordered_map<RouteNode *, std::list<RouteEdge*>> *path);
 
     void notifyInside(float time, TramStop *tramStop);
 
@@ -28,7 +29,7 @@ private:
     RouteNode *m_currentNode;
     Tram *m_currentTram;
     RouteNode *m_endNode;
-    std::unordered_map<RouteNode *, std::list<int>> *m_path;
+    std::unordered_map<RouteNode *, std::list<RouteEdge*>> *m_path;
 
     std::list<float> m_timeHistory;
     std::list<Tram *> m_tramHistory;

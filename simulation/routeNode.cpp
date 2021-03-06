@@ -1,6 +1,6 @@
 #include "routeNode.h"
-
 #include "passenger.h"
+#include "MultilineQueue.hpp"
 
 RouteNode::RouteNode(std::string name, std::list<int> generationDistribution, std::list<int> absorptionRate, int expectedGeneratedCount)
 {
@@ -13,17 +13,26 @@ RouteNode::RouteNode(std::string name, std::list<int> generationDistribution, st
 	m_expectedGeneratedCount = expectedGeneratedCount;
 }
 
-void RouteNode::addOutgoingEdge(RouteEdge* edge)
+void RouteNode::addOutgoingEdge(RouteEdge *edge)
 {
 	m_outgoingEdges.push_back(edge);
 }
 
-void RouteNode::addIncomingEdge(RouteEdge* edge)
+void RouteNode::addIncomingEdge(RouteEdge *edge)
 {
 	m_incomingEdges.push_back(edge);
 }
 
-int RouteNode::randomPassengerSpawnHour(std::minstd_rand0* rng)
+void RouteNode::initializePassengerQueue()
+{
+	m_passengerQueue = MultilineQueue<Passenger*, RouteEdge*>(m_outgoingEdges);
+}
+
+std::list<RouteEdge *> RouteNode::getOutgoingEdges(){
+	return m_outgoingEdges;
+}
+
+int RouteNode::randomPassengerSpawnHour(std::minstd_rand0 *rng)
 {
 	std::uniform_int_distribution<> passenger_dist(1, m_expectedGeneratedCount);
 
@@ -35,21 +44,26 @@ int RouteNode::randomPassengerSpawnHour(std::minstd_rand0* rng)
 	return h;
 }
 
-void RouteNode::addPassenger(float time, Passenger* passenger, const std::list<int>& routes)
+void RouteNode::addPassenger(float time, Passenger *passenger, const std::list<RouteEdge *> &routes)
 {
 	m_passengerCount++;
 	m_passengerQueue.enqueue(passenger, routes);
 	addHistoryRow(time);
 }
 
-Passenger* RouteNode::dispensePassenger(float time, int route)
+Passenger *RouteNode::dispensePassenger(float time, RouteEdge *route)
 {
-	Passenger* passenger = m_passengerQueue.dequeue(route);
-	if (passenger != nullptr) {
+	Passenger *passenger = m_passengerQueue.dequeue(route);
+	if (passenger != nullptr)
+	{
 		m_passengerCount--;
 		addHistoryRow(time);
 	}
 	return passenger;
+}
+
+int RouteNode::getPassengerCount(RouteEdge *route) {
+	return m_passengerQueue.size(route);
 }
 
 int RouteNode::getExpectedGeneratedCount()

@@ -10,6 +10,7 @@ class Junction;
 class Simulation;
 class Passenger;
 class RouteNode;
+class RouteEdge;
 class TramStop;
 
 #include "include/json.hpp"
@@ -39,6 +40,7 @@ public:
 	float stoppingDistance();
 	Tram *getTramAhead(float limit);
 	int getRoute();
+	RouteEdge *getRouteEdge();
 
 	enum State
 	{
@@ -82,6 +84,7 @@ private:
 	bool m_requestedGreenLight;
 	Tram *m_waitingTram;
 	int m_route;
+	RouteEdge* m_currentRouteEdge;
 
 	std::list<Edge *> m_edgesToVisit;
 	std::list<TramStop *> m_stopsToVisit;
@@ -90,6 +93,8 @@ private:
 
 	std::list<Passenger *> m_passengers;
 	std::list<Passenger *> m_exitingPassengers;
+
+	void calculateRouteEdge();
 
 	float getNextStopPosition();
 	float getNextTrafficLightPosition();

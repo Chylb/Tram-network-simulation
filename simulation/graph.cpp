@@ -50,7 +50,7 @@ std::pair<std::list<Edge *>, std::list<TrafficLight *>> Graph::findTramPath(Node
 	std::list<TrafficLight *> trafficLights;
 	std::list<Edge *> path;
 
-	if (target->getId() == 36 )
+	if (target->getId() == 36)
 	{
 		int deb = 3;
 	}
@@ -69,10 +69,12 @@ std::pair<std::list<Edge *>, std::list<TrafficLight *>> Graph::findTramPath(Node
 	return std::make_pair(path, trafficLights);
 }
 
-std::unordered_map<RouteNode *, std::list<int>> Graph::findPassengerPath(RouteNode *source, RouteNode *target)
+std::unordered_map<RouteNode *, std::list<RouteEdge *>> Graph::findPassengerPath(RouteNode *source, RouteNode *target)
 {
 	std::unordered_map<RouteNode *, RouteEdge *> previous;
 	std::list<RouteNode *> toVisit;
+
+	std::unordered_map<RouteNode *, std::list<RouteEdge *>> result;
 
 	for (auto e : source->m_outgoingEdges)
 	{
@@ -81,10 +83,7 @@ std::unordered_map<RouteNode *, std::list<int>> Graph::findPassengerPath(RouteNo
 	}
 
 	if (toVisit.size() == 0)
-	{
-		std::unordered_map<RouteNode *, std::list<int>> res;
-		return res;
-	}
+		return result;
 
 	auto node = toVisit.front();
 	toVisit.pop_front();
@@ -100,10 +99,8 @@ std::unordered_map<RouteNode *, std::list<int>> Graph::findPassengerPath(RouteNo
 			}
 		}
 		if (toVisit.size() == 0)
-		{
-			std::unordered_map<RouteNode *, std::list<int>> res;
-			return res;
-		}
+			return result;
+
 		node = toVisit.front();
 		toVisit.pop_front();
 	}
@@ -118,10 +115,13 @@ std::unordered_map<RouteNode *, std::list<int>> Graph::findPassengerPath(RouteNo
 		path.push_front(edge);
 	}
 
-	std::unordered_map<RouteNode *, std::list<int>> result;
 	for (auto e : path)
 	{
-		result[e->m_tail] = e->m_lines;
+		auto it = result.find(e->m_tail);
+		if (it == result.end())
+			result[e->m_tail] = {e};
+		else
+			it->second.push_back(e);
 	}
 
 	return result;

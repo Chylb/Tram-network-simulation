@@ -147,7 +147,7 @@ void EventPassangerExchangeUpdate::processEvent()
 	m_tram->updatePassengerExchange(m_time);
 }
 
-EventSpawnPassenger::EventSpawnPassenger(float time, RouteNode *startNode, RouteNode *endNode, std::unordered_map<RouteNode *, std::list<int>> *path) : Event(time)
+EventSpawnPassenger::EventSpawnPassenger(float time, RouteNode *startNode, RouteNode *endNode, std::unordered_map<RouteNode *, std::list<RouteEdge*>> *path) : Event(time)
 {
 	m_startNode = startNode;
 	m_endNode = endNode;
