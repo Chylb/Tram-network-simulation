@@ -15,6 +15,7 @@ class Edge;
 class Tram;
 class RouteNode;
 class RouteEdge;
+class Passenger;
 
 using json = nlohmann::json;
 
@@ -25,6 +26,7 @@ public:
 	void run();
 	void addTram(Tram *tram);
 	void removeTram(Tram *tram);
+	void addPassenger(float time, RouteNode* startNode, RouteNode* endNode, std::unordered_map<RouteNode*, std::list<RouteEdge*>>* path);
 	void addEvent(Event *event);
 	void removeEvent(Event *event);
 	json getResults();
@@ -40,6 +42,7 @@ private:
 	std::list<Tram *> m_trams;
 	std::list<Tram *> m_removedTrams;
 	std::list<TrafficLight *> m_trafficLights;
+	std::vector<Passenger> m_passengers;
 
 	RouteNode **m_routeNodeArray;
 };

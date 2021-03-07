@@ -41,7 +41,7 @@ void Passenger::exitTram(float time, RouteNode *node)
 
     if (node == m_endNode)
     {
-        delete this;
+        //delete this;
     }
     else
     {

@@ -12,6 +12,7 @@
 #include "routeNode.h"
 #include "routeEdge.h"
 #include "tramStop.h"
+#include "passenger.h"
 
 #include "tools/timer.hpp"
 
@@ -205,6 +206,7 @@ Simulation::Simulation(json networkModel)
 	//passenger generation
 
 	int passengerCount = networkModel["passengerCount"];
+	m_passengers.reserve(passengerCount);
 
 	int sum = 0;
 	int* routeNodeGenerationDistribution = new int[m_routeNodes.size()];
@@ -283,7 +285,7 @@ Simulation::Simulation(json networkModel)
 
 		float time = 3600 * ((float)h + real_dist(rng));
 
-		auto event = new EventSpawnPassenger(time, node1, node2, &m_passengerPaths[ix1][ix2]);
+		auto event = new EventSpawnPassenger(time, this, node1, node2, &m_passengerPaths[ix1][ix2]);
 		addEvent(event);
 	}
 }
@@ -344,6 +346,10 @@ void Simulation::removeTram(Tram* tram)
 {
 	m_trams.remove(tram);
 	m_removedTrams.push_back(tram);
+}
+
+void Simulation::addPassenger(float time, RouteNode* startNode, RouteNode* endNode, std::unordered_map<RouteNode*, std::list<RouteEdge*>>* path) {
+	m_passengers.emplace_back(time, startNode, endNode, path);
 }
 
 void Simulation::addEvent(Event* event)

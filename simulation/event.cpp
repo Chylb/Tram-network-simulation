@@ -147,8 +147,9 @@ void EventPassangerExchangeUpdate::processEvent()
 	m_tram->updatePassengerExchange(m_time);
 }
 
-EventSpawnPassenger::EventSpawnPassenger(float time, RouteNode *startNode, RouteNode *endNode, std::unordered_map<RouteNode *, std::list<RouteEdge*>> *path) : Event(time)
+EventSpawnPassenger::EventSpawnPassenger(float time, Simulation* simulation, RouteNode *startNode, RouteNode *endNode, std::unordered_map<RouteNode *, std::list<RouteEdge*>> *path) : Event(time)
 {
+	m_simulation = simulation;
 	m_startNode = startNode;
 	m_endNode = endNode;
 	m_path = path;
@@ -156,5 +157,5 @@ EventSpawnPassenger::EventSpawnPassenger(float time, RouteNode *startNode, Route
 
 void EventSpawnPassenger::processEvent()
 {
-	auto passenger = new Passenger(m_time, m_startNode, m_endNode, m_path);
+	m_simulation->addPassenger(m_time, m_startNode, m_endNode, m_path);
 }
