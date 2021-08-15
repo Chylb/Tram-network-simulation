@@ -7,6 +7,10 @@ const HtmlTableToJson = require('html-table-to-json');
 const strona = 'http://rozklady.mpk.krakow.pl';
 
 async function main() {
+    if (!fs.existsSync('./pages')){
+        fs.mkdirSync('./pages', { recursive: true });
+    }
+
     try {
         let mainBody = await getQuote('http://rozklady.mpk.krakow.pl/?lang=PL&akcja=index&rozklad=20200323');
         let $ = cheerio.load(mainBody);

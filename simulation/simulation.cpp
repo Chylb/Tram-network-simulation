@@ -248,7 +248,7 @@ Simulation::Simulation(json networkModel)
 
 	for (int i = 0; i < m_routeNodes.size(); ++i)
 	{
-		m_passengerPaths[i] = new std::unordered_map<RouteNode*, std::list<RouteEdge*>> [m_routeNodes.size()];
+		m_passengerPaths[i] = new std::unordered_map<RouteNode*, std::list<RouteEdge*>>[m_routeNodes.size()];
 
 		for (int j = 0; j < m_routeNodes.size(); ++j)
 		{
@@ -313,6 +313,12 @@ void Simulation::run()
 
 		time = event->m_time;
 
+		/*TramEvent* tramEvent = dynamic_cast<TramEvent*>(event);
+		if (tramEvent != nullptr)
+		{
+			;
+		}*/
+
 		if (event->m_requiresTramsUpdate)
 			for (auto tram : m_trams)
 			{
@@ -354,6 +360,22 @@ void Simulation::addPassenger(float time, RouteNode* startNode, RouteNode* endNo
 
 void Simulation::addEvent(Event* event)
 {
+	//#ifdef _DEBUG
+	//if (TramEvent* tramEvent = dynamic_cast<TramEvent*>(event); tramEvent != nullptr)
+	//{
+	//	std::vector<Event*>* queue = (std::vector<Event*>*) & m_eventQueue;	//quick and dirty
+	//	for (auto existingEventIt = queue->begin(); existingEventIt < queue->end(); existingEventIt++)
+	//	{
+	//		Event* existingEvent = *existingEventIt;
+	//		if (TramEvent* existingTramEvent = dynamic_cast<TramEvent*>(existingEvent); existingTramEvent && existingTramEvent->m_tram == tramEvent->m_tram)
+	//		{
+	//			printf("WARNING! TramEvent already exists. Tram: %d Time: %f Route: %d \n ", tramEvent->m_tram->getId(), tramEvent->m_time, tramEvent->m_tram->getRoute());
+	//			//existingEventIt = queue->erase(existingEventIt);
+	//		}
+	//	}
+	//}
+	//#endif
+
 	m_eventQueue.push(event);
 }
 

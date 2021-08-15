@@ -70,6 +70,8 @@ module.exports = {
   },
 
   manualJunctionAdjustments: function (pn) {
+    const borekFałęcki = nearestJunction(pn, [-750,-5400]);
+    removeJunction(pn, borekFałęcki);
 
     const placCentralny = pn.nodes.get(1769087813).junction;
     removeTrafficLight(pn.nodes.get(321437263));
@@ -158,11 +160,6 @@ module.exports = {
 
     removeTrafficLight(pn.nodes.get(1764579369));
 
-    const borekFałęcki = pn.nodes.get(321429854).junction;
-    removeJunction(pn, borekFałęcki);
-    const salwator = pn.nodes.get(2419720298).junction;
-    removeJunction(pn, salwator);
-
     for (let junction of pn.junctions) {
       updateJunction(junction)
     }
@@ -215,4 +212,20 @@ function removeJunction(pn, junction) {
     removeJunctionExit(exit);
 
   pn.junctions = pn.junctions.filter(x => x != junction);
+}
+
+function nearestJunction(pn, pos, maxDistance = 100) {
+  let nearestJunction;
+  let minDis = Infinity;
+  for (const [id, node] of pn.nodes) {
+      if (node.junction != undefined) {
+          const dis = (node.x - pos[0]) ** 2 + (node.y - pos[1]) ** 2;
+          if (dis < minDis) {
+              nearestJunction = node.junction;
+              minDis = dis;
+          }
+      }
+  }
+  if (minDis < maxDistance ** 2)
+      return nearestJunction;
 }
