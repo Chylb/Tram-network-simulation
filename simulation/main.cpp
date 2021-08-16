@@ -23,9 +23,9 @@ int main()
 	Simulation* simulation = new Simulation(networkModel);
 	simulation->run();
 
-	std::ofstream ofstream("./data/results.json");
+	/*std::ofstream ofstream("./data/results.json");
 	ofstream << simulation->getResults();
-	ofstream.close();
+	ofstream.close();*/
 
 	return 0;
 }

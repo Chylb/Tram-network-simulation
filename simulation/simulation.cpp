@@ -9,8 +9,8 @@
 #include "edge.h"
 #include "tram.h"
 #include "junction.h"
-#include "routeNode.h"
-#include "routeEdge.h"
+#include "PassengerNode.h"
+#include "PassengerEdge.h"
 #include "tramStop.h"
 #include "passenger.h"
 
@@ -18,35 +18,35 @@
 
 Simulation::Simulation(json networkModel)
 {
-	for (json jRouteNode : networkModel["routeNodes"])
+	for (json jPassengerNode : networkModel["passengerNodes"])
 	{
-		std::string name = jRouteNode["name"];
-		std::list<int> generationDistribution = jRouteNode["generationDistribution"];
-		std::list<int> absorptionRate = jRouteNode["absorptionRate"];
-		int expectedGeneratedCount = jRouteNode["expectedGeneratedCount"];
+		std::string name = jPassengerNode["name"];
+		std::list<int> generationDistribution = jPassengerNode["generationDistribution"];
+		std::list<int> absorptionRate = jPassengerNode["absorptionRate"];
+		int expectedGeneratedCount = jPassengerNode["expectedGeneratedCount"];
 
-		auto routeNode = new RouteNode(name, generationDistribution, absorptionRate, expectedGeneratedCount);
-		m_routeNodes[name] = routeNode;
+		auto passengerNode = new PassengerNode(name, generationDistribution, absorptionRate, expectedGeneratedCount);
+		m_passengerNodes[name] = passengerNode;
 	}
 
-	for (json jRouteEdge : networkModel["routeEdges"])
+	for (json jRouteEdge : networkModel["passengerEdges"])
 	{
-		auto head = m_routeNodes[jRouteEdge["head"]];
-		auto tail = m_routeNodes[jRouteEdge["tail"]];
+		auto head = m_passengerNodes[jRouteEdge["head"]];
+		auto tail = m_passengerNodes[jRouteEdge["tail"]];
 		std::list<int> lines = jRouteEdge["lines"];
 
-		auto routeEdge = new RouteEdge(lines, tail, head);
+		auto routeEdge = new PassengerEdge(lines, tail, head);
 
 		tail->addOutgoingEdge(routeEdge);
 		head->addIncomingEdge(routeEdge);
 	}
-	m_routeNodeArray = new RouteNode * [m_routeNodes.size()];
+	m_passengerNodeArray = new PassengerNode * [m_passengerNodes.size()];
 
-	auto it = m_routeNodes.begin();
-	for (int i = 0; i < m_routeNodes.size(); ++i)
+	auto it = m_passengerNodes.begin();
+	for (int i = 0; i < m_passengerNodes.size(); ++i)
 	{
 		(*it).second->initializePassengerQueue();
-		m_routeNodeArray[i] = (*it).second;
+		m_passengerNodeArray[i] = (*it).second;
 		it++;
 	}
 
@@ -68,13 +68,13 @@ Simulation::Simulation(json networkModel)
 		}
 		else if (jNode.contains("stopName"))
 		{
-			if (m_routeNodes.find(jNode["stopName"]) == m_routeNodes.end())
+			if (m_passengerNodes.find(jNode["stopName"]) == m_passengerNodes.end())
 			{
 				node = new TramStop(id, nullptr);
 			}
 			else
 			{
-				auto routeNode = m_routeNodes[jNode["stopName"]];
+				auto routeNode = m_passengerNodes[jNode["stopName"]];
 				node = new TramStop(id, routeNode);
 			}
 		}
@@ -209,12 +209,12 @@ Simulation::Simulation(json networkModel)
 	m_passengers.reserve(passengerCount);
 
 	int sum = 0;
-	int* routeNodeGenerationDistribution = new int[m_routeNodes.size()];
+	int* routeNodeGenerationDistribution = new int[m_passengerNodes.size()];
 
 	//routeNode generation distribution calculation
-	for (int i = 0; i < m_routeNodes.size(); i++)
+	for (int i = 0; i < m_passengerNodes.size(); i++)
 	{
-		auto routeNode = m_routeNodeArray[i];
+		auto routeNode = m_passengerNodeArray[i];
 		sum += routeNode->getExpectedGeneratedCount();
 		routeNodeGenerationDistribution[i] = sum;
 	}
@@ -225,11 +225,11 @@ Simulation::Simulation(json networkModel)
 	//routeNode absorption distribution calculation
 	for (int h = 0; h < 24; h++)
 	{
-		routeNodeAbsorptionDistribution[h] = new int[m_routeNodes.size()];
+		routeNodeAbsorptionDistribution[h] = new int[m_passengerNodes.size()];
 		sum = 0;
-		for (int i = 0; i < m_routeNodes.size(); i++)
+		for (int i = 0; i < m_passengerNodes.size(); i++)
 		{
-			auto routeNode = m_routeNodeArray[i];
+			auto routeNode = m_passengerNodeArray[i];
 			sum += routeNode->getAbsorptionRate(h);
 			routeNodeAbsorptionDistribution[h][i] = sum;
 		}
@@ -243,19 +243,20 @@ Simulation::Simulation(json networkModel)
 #ifdef LOG_TIME
 	Timer passengerPathfindingTimer("Passenger pathfinding");
 #endif // LOG_TIME
+
 	//finding paths
-	m_passengerPaths = new std::unordered_map<RouteNode*, std::list<RouteEdge*>> *[m_routeNodes.size()];
+	m_passengerEdges = new std::unordered_map<PassengerNode*, std::list<PassengerEdge*>> *[m_passengerNodes.size()];
 
-	for (int i = 0; i < m_routeNodes.size(); ++i)
+	for (int i = 0; i < m_passengerNodes.size(); ++i)
 	{
-		m_passengerPaths[i] = new std::unordered_map<RouteNode*, std::list<RouteEdge*>>[m_routeNodes.size()];
+		m_passengerEdges[i] = new std::unordered_map<PassengerNode*, std::list<PassengerEdge*>>[m_passengerNodes.size()];
 
-		for (int j = 0; j < m_routeNodes.size(); ++j)
+		for (int j = 0; j < m_passengerNodes.size(); ++j)
 		{
-			auto node1 = m_routeNodeArray[i];
-			auto node2 = m_routeNodeArray[j];
+			auto node1 = m_passengerNodeArray[i];
+			auto node2 = m_passengerNodeArray[j];
 
-			m_passengerPaths[i][j] = Graph::findPassengerPath(node1, node2);
+			m_passengerEdges[i][j] = Graph::findPassengerPath(node1, node2);
 		}
 	}
 #ifdef LOG_TIME
@@ -269,7 +270,7 @@ Simulation::Simulation(json networkModel)
 		int ix1 = 0;
 		while (routeNodeGenerationDistribution[ix1] < r)
 			++ix1;
-		auto node1 = m_routeNodeArray[ix1];
+		auto node1 = m_passengerNodeArray[ix1];
 
 		int h = node1->randomPassengerSpawnHour(&rng);
 
@@ -281,11 +282,11 @@ Simulation::Simulation(json networkModel)
 			while (routeNodeAbsorptionDistribution[h][ix2] < r)
 				++ix2;
 		} while (ix1 == ix2);
-		auto node2 = m_routeNodeArray[ix2];
+		auto node2 = m_passengerNodeArray[ix2];
 
 		float time = 3600 * ((float)h + real_dist(rng));
 
-		auto event = new EventSpawnPassenger(time, this, node1, node2, &m_passengerPaths[ix1][ix2]);
+		auto event = new EventSpawnPassenger(time, this, node1, node2, &m_passengerEdges[ix1][ix2]);
 		addEvent(event);
 	}
 }
@@ -338,6 +339,19 @@ void Simulation::run()
 
 		delete event;
 	}
+
+	//int maxLen = 0;
+	//int maxPassLen = 0;
+	//for (Tram* tram : m_removedTrams)
+	//{
+	//	if (tram->m_positionHistory.size() > maxLen)
+	//		maxLen = tram->m_positionHistory.size();
+
+	//	if (tram->m_passengerHistory.size() > maxPassLen)
+	//		maxPassLen = tram->m_passengerHistory.size();
+	//}
+	//printf("MAX %d %d \n", maxLen, maxPassLen);
+
 #ifdef LOG_TIME
 	simulationTimer.finish();
 #endif // LOG_TIME
@@ -354,7 +368,7 @@ void Simulation::removeTram(Tram* tram)
 	m_removedTrams.push_back(tram);
 }
 
-void Simulation::addPassenger(float time, RouteNode* startNode, RouteNode* endNode, std::unordered_map<RouteNode*, std::list<RouteEdge*>>* path) {
+void Simulation::addPassenger(float time, PassengerNode* startNode, PassengerNode* endNode, std::unordered_map<PassengerNode*, std::list<PassengerEdge*>>* path) {
 	m_passengers.emplace_back(time, startNode, endNode, path);
 }
 
@@ -401,7 +415,7 @@ json Simulation::getResults()
 	for (auto trafficLight : m_trafficLights)
 		results["trafficLights"].push_back(trafficLight->getHistory());
 
-	for (auto kvp : m_routeNodes)
+	for (auto kvp : m_passengerNodes)
 		results["routeNodes"].push_back(kvp.second->getHistory());
 
 	return results;

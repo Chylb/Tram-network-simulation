@@ -9,8 +9,8 @@ class TrafficLight;
 class Junction;
 class Simulation;
 class Passenger;
-class RouteNode;
-class RouteEdge;
+class PassengerNode;
+class PassengerEdge;
 class TramStop;
 
 #include "include/json.hpp"
@@ -19,15 +19,15 @@ using json = nlohmann::json;
 class Tram
 {
 public:
-	Tram(int id, Edge *edge, Simulation *simulation);
-	void setCurrentEdge(Edge *currentEdge);
-	void setEdgesToVisit(std::list<Edge *> edgesToVisit);
-	void setStopsToVisit(std::list<TramStop *> nodesToVisit);
-	void setTrafficLightsToVisit(std::list<TrafficLight *> nodesToVisit);
+	Tram(int id, Edge* edge, Simulation* simulation);
+	void setCurrentEdge(Edge* currentEdge);
+	void setEdgesToVisit(std::list<Edge*> edgesToVisit);
+	void setStopsToVisit(std::list<TramStop*> nodesToVisit);
+	void setTrafficLightsToVisit(std::list<TrafficLight*> nodesToVisit);
 	void setStopsTimes(std::list<float> stopsTimes);
 
 	void setSpeed(float speed);
-	void setWaitingTram(Tram *waitingTram);
+	void setWaitingTram(Tram* waitingTram);
 	void setRoute(int route);
 
 	int getId();
@@ -35,12 +35,12 @@ public:
 	float getMaxSpeed();
 	float getLength();
 	float getMaxDecelerationDistance();
-	Edge *getCurrentEdge();
-	std::list<TramStop *> getStopsToVisit();
+	Edge* getCurrentEdge();
+	std::list<TramStop*> getStopsToVisit();
 	float stoppingDistance();
-	Tram *getTramAhead(float limit);
+	Tram* getTramAhead(float limit);
 	int getRoute();
-	RouteEdge *getRouteEdge();
+	PassengerEdge* getPassengerEdge();
 
 	enum State
 	{
@@ -51,15 +51,20 @@ public:
 		exchangingPassangers
 	};
 
-	void setNextEvent(Event *event);
+	struct HistoryRow
+	{
+
+	};
+
+	void setNextEvent(Event* event);
 	void generateNextEvent(float time);
-	inline Event *addIntermediateEvents(Event *mainEvent, float mainEventPositon, float time, Node *eventCauseNode);
+	inline Event* addIntermediateEvents(Event* mainEvent, float mainEventPositon, float time, Node* eventCauseNode);
 
 	void enterNextEdge(float time);
 
 	void beginPassengerExchange(float time);
 	void updatePassengerExchange(float time);
-	void requestPassengerExit(Passenger *passenger);
+	void requestPassengerExit(Passenger* passenger);
 
 	void notifyTrafficLight(float time); //when traffic light notifies this
 	void notifyTram(float time);		 //when tram notifies this
@@ -72,29 +77,29 @@ public:
 	void addPassengerHistoryRow(float time);
 	json getHistory();
 
-private:
+	//private:
 	int m_id;
-	Simulation *m_simulation;
+	Simulation* m_simulation;
 	State m_state;
 	float m_position;
 	float m_speed;
-	Edge *m_currentEdge;
-	Event *m_nextEvent;
-	Junction *m_currentJunction;
+	Edge* m_currentEdge;
+	Event* m_nextEvent;
+	Junction* m_currentJunction;
 	bool m_requestedGreenLight;
-	Tram *m_waitingTram;
+	Tram* m_waitingTram;
 	int m_route;
-	RouteEdge* m_currentRouteEdge;
+	PassengerEdge* m_currentPassengerEdge;
 
-	std::list<Edge *> m_edgesToVisit;
-	std::list<TramStop *> m_stopsToVisit;
-	std::list<TrafficLight *> m_trafficLightsToVisit;
+	std::list<Edge*> m_edgesToVisit;
+	std::list<TramStop*> m_stopsToVisit;
+	std::list<TrafficLight*> m_trafficLightsToVisit;
 	std::list<float> m_stopsTimes;
 
-	std::list<Passenger *> m_passengers;
-	std::list<Passenger *> m_exitingPassengers;
+	std::list<Passenger*> m_passengers;
+	std::list<Passenger*> m_exitingPassengers;
 
-	void calculateRouteEdge();
+	void calculatePassengerEdge();
 
 	float getNextStopPosition();
 	float getNextTrafficLightPosition();
@@ -131,23 +136,23 @@ private:
 	float m_t0;
 	float m_v0;
 
-	std::list<State> m_stateHistory;
-	std::list<float> m_positionHistory;
-	std::list<float> m_timeHistory;
-	std::list<float> m_speedHistory;
-	std::list<int> m_edgeHistory;
+	std::vector<State> m_stateHistory;
+	std::vector<float> m_positionHistory;
+	std::vector<float> m_timeHistory;
+	std::vector<float> m_speedHistory;
+	std::vector<int> m_edgeHistory;
 
-	std::list<float> m_timePassengerHistory;
-	std::list<int> m_passengerHistory;
+	std::vector<float> m_timePassengerHistory;
+	std::vector<int> m_passengerHistory;
 };
 
 struct TramCollisionException : public std::exception
 {
 	std::string m_msg;
 
-	TramCollisionException(Tram *tram, Tram *tramAhead);
+	TramCollisionException(Tram* tram, Tram* tramAhead);
 
-	const char *what() const throw()
+	const char* what() const throw()
 	{
 		return m_msg.c_str();
 	}

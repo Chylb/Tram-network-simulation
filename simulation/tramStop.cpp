@@ -1,7 +1,7 @@
 #include "tramStop.h"
 
-#include "routeNode.h"
+#include "PassengerNode.h"
 
-TramStop::TramStop(int id, RouteNode *routeNode) : Node(id, false, false, true), m_routeNode(routeNode)
+TramStop::TramStop(int id, PassengerNode* passengerNode) : Node(id, false, false, true), m_passengerNode(passengerNode)
 {
 }

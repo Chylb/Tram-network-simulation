@@ -7,7 +7,7 @@
 #include "trafficLight.h"
 #include "graph.h"
 #include "junction.h"
-#include "routeNode.h"
+#include "PassengerNode.h"
 #include "tramStop.h"
 #include "passenger.h"
 
@@ -17,13 +17,13 @@ Event::Event(float time)
 	m_requiresTramsUpdate = false;
 }
 
-TramEvent::TramEvent(Tram *tram, float time) : Event(time)
+TramEvent::TramEvent(Tram* tram, float time) : Event(time)
 {
 	m_tram = tram;
 	m_requiresTramsUpdate = true;
 }
 
-EventTramDeploy::EventTramDeploy(std::list<TramStop *> tripStops, std::list<TrafficLight *> tripTrafficLights, std::list<float> stopsTimes, std::list<Edge *> tripPath, Simulation *simulation, int tramId, int route) : TramEvent(nullptr, stopsTimes.front())
+EventTramDeploy::EventTramDeploy(std::list<TramStop*> tripStops, std::list<TrafficLight*> tripTrafficLights, std::list<float> stopsTimes, std::list<Edge*> tripPath, Simulation* simulation, int tramId, int route) : TramEvent(nullptr, stopsTimes.front())
 {
 	m_simulation = simulation;
 
@@ -43,7 +43,7 @@ void EventTramDeploy::processEvent()
 	m_simulation->addEvent(event);
 }
 
-EventTramSpawn::EventTramSpawn(Tram *tram, float time, Simulation *simulation) : TramEvent(tram, time)
+EventTramSpawn::EventTramSpawn(Tram* tram, float time, Simulation* simulation) : TramEvent(tram, time)
 {
 	m_simulation = simulation;
 }
@@ -51,7 +51,7 @@ EventTramSpawn::EventTramSpawn(Tram *tram, float time, Simulation *simulation) :
 void EventTramSpawn::processEvent()
 {
 	Tram* tramAhead = nullptr;
-	if(m_tram->getCurrentEdge()->getTrams().size() > 0)
+	if (m_tram->getCurrentEdge()->getTrams().size() > 0)
 		tramAhead = m_tram->getCurrentEdge()->getTrams().front(); //function getTramAhead doesn't work on a first edge because the tram is not added yet
 	if (tramAhead == nullptr)
 		tramAhead = m_tram->getTramAhead(m_tram->getMaxDecelerationDistance());
@@ -76,7 +76,7 @@ void EventTramSpawn::processEvent()
 	}
 }
 
-EventReachedVmax::EventReachedVmax(Tram *tram, float time) : TramEvent(tram, time)
+EventReachedVmax::EventReachedVmax(Tram* tram, float time) : TramEvent(tram, time)
 {
 }
 
@@ -87,7 +87,7 @@ void EventReachedVmax::processEvent()
 	m_tram->generateNextEvent(m_time);
 }
 
-EventCheckForCollisions::EventCheckForCollisions(Tram *tram, float time) : TramEvent(tram, time)
+EventCheckForCollisions::EventCheckForCollisions(Tram* tram, float time) : TramEvent(tram, time)
 {
 }
 
@@ -96,7 +96,7 @@ void EventCheckForCollisions::processEvent()
 	m_tram->generateNextEvent(m_time);
 }
 
-EventEndDeceleration::EventEndDeceleration(Tram *tram, float time, float targetSpeed) : TramEvent(tram, time)
+EventEndDeceleration::EventEndDeceleration(Tram* tram, float time, float targetSpeed) : TramEvent(tram, time)
 {
 	m_targetSpeed = targetSpeed;
 }
@@ -113,7 +113,7 @@ void EventEndDeceleration::processEvent()
 	m_tram->generateNextEvent(m_time);
 }
 
-EventEnterNewEdge::EventEnterNewEdge(Tram *tram, float time) : TramEvent(tram, time)
+EventEnterNewEdge::EventEnterNewEdge(Tram* tram, float time) : TramEvent(tram, time)
 {
 	m_nextEvent = nullptr;
 }
@@ -128,7 +128,7 @@ void EventEnterNewEdge::processEvent()
 		m_tram->setNextEvent(m_nextEvent);
 }
 
-EventBeginPassangerExchange::EventBeginPassangerExchange(Tram *tram, float time) : TramEvent(tram, time)
+EventBeginPassangerExchange::EventBeginPassangerExchange(Tram* tram, float time) : TramEvent(tram, time)
 {
 }
 
@@ -137,7 +137,7 @@ void EventBeginPassangerExchange::processEvent()
 	m_tram->beginPassengerExchange(m_time);
 }
 
-EventPassangerExchangeUpdate::EventPassangerExchangeUpdate(Tram *tram, float time) : TramEvent(tram, time)
+EventPassangerExchangeUpdate::EventPassangerExchangeUpdate(Tram* tram, float time) : TramEvent(tram, time)
 {
 	m_requiresTramsUpdate = false;
 }
@@ -147,7 +147,7 @@ void EventPassangerExchangeUpdate::processEvent()
 	m_tram->updatePassengerExchange(m_time);
 }
 
-EventSpawnPassenger::EventSpawnPassenger(float time, Simulation* simulation, RouteNode *startNode, RouteNode *endNode, std::unordered_map<RouteNode *, std::list<RouteEdge*>> *path) : Event(time)
+EventSpawnPassenger::EventSpawnPassenger(float time, Simulation* simulation, PassengerNode* startNode, PassengerNode* endNode, std::unordered_map<PassengerNode*, std::list<PassengerEdge*>>* path) : Event(time)
 {
 	m_simulation = simulation;
 	m_startNode = startNode;

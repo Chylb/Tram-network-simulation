@@ -6,7 +6,7 @@ const Track = require("./track.js");
 const Junction = require("./junction.js");
 
 const Schedule = require("./schedule.js");
-const RouteNode = require("./routeNode.js");
+const Passenger = require("./passenger.js");
 
 const Export = require("./export.js");
 
@@ -121,8 +121,8 @@ function processLogicalNetwork(physicalNetwork, raw_schedule) { //creates logica
   const ln = { //logical network
     routes: [],
     trips: [],
-    routeNodes: new Map(), //tram stops with the same name combined together. Nodes that are used by passengers.  
-    routeEdges: new Map() //edges between routeNodes. They are used in passenger pathfinding.
+    passengerNodes: new Map(), //tram stops with the same name combined together. Nodes that are used by passengers.  
+    passengerEdges: new Map() //edges between passengerNodes. They are used in passenger pathfinding.
   };
 
   Fix.removeFakeRouteStops(schedule);
@@ -131,8 +131,8 @@ function processLogicalNetwork(physicalNetwork, raw_schedule) { //creates logica
   Schedule.createRoutes(physicalNetwork, schedule, ln);
   Schedule.createTrips(ln);
 
-  RouteNode.createRouteNodes(physicalNetwork, ln);
-  RouteNode.setRouteNodesProperties(ln);
+  Passenger.createPassengerNodes(physicalNetwork, ln);
+  Passenger.setPassengerNodesProperties(ln);
 
   return ln;
 }

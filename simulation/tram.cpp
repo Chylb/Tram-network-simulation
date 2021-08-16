@@ -10,10 +10,10 @@
 #include "simulation.h"
 #include "passenger.h"
 #include "tramStop.h"
-#include "routeNode.h"
-#include "routeEdge.h"
+#include "PassengerNode.h"
+#include "PassengerEdge.h"
 
-Tram::Tram(int id, Edge *edge, Simulation *simulation)
+Tram::Tram(int id, Edge* edge, Simulation* simulation)
 {
 	m_id = id;
 	m_simulation = simulation;
@@ -25,9 +25,20 @@ Tram::Tram(int id, Edge *edge, Simulation *simulation)
 	m_currentJunction = nullptr;
 	m_requestedGreenLight = false;
 	m_waitingTram = nullptr;
+
+	size_t reservedHistoryRows = 300;
+	m_stateHistory.reserve(reservedHistoryRows);
+	m_positionHistory.reserve(reservedHistoryRows);
+	m_timeHistory.reserve(reservedHistoryRows);
+	m_speedHistory.reserve(reservedHistoryRows);
+	m_edgeHistory.reserve(reservedHistoryRows);
+
+	size_t reservedPassengerHistoryRows = 2000;
+	m_timePassengerHistory.reserve(reservedPassengerHistoryRows);
+	m_passengerHistory.reserve(reservedPassengerHistoryRows);
 }
 
-void Tram::setNextEvent(Event *event)
+void Tram::setNextEvent(Event* event)
 {
 	m_nextEvent = event;
 	m_simulation->addEvent(event);
@@ -43,7 +54,7 @@ void Tram::generateNextEvent(float time)
 		reachingVmax
 	};
 	EventCause eventCause;
-	Node *eventCauseNode = nullptr;
+	Node* eventCauseNode = nullptr;
 
 	if (m_state == exchangingPassangers) //sometimes events happens while exchanging passengers, it prevents unexpected behaviour
 		return;
@@ -57,7 +68,7 @@ void Tram::generateNextEvent(float time)
 	{
 		eventCause = trafficLight;
 		nearestEventCausePosition = nextTrafficLightPosition;
-		eventCauseNode = (Node *)m_trafficLightsToVisit.front();
+		eventCauseNode = (Node*)m_trafficLightsToVisit.front();
 	}
 
 	float nextTramPosition = getNextTramPosition(nearestEventCausePosition) - c_length;
@@ -94,7 +105,7 @@ void Tram::generateNextEvent(float time)
 	}
 
 	float timeToNextEvent;
-	Event *nextEvent;
+	Event* nextEvent;
 
 	if (eventCause == reachingVmax)
 	{
@@ -133,7 +144,7 @@ void Tram::generateNextEvent(float time)
 				{
 					if (!m_requestedGreenLight)
 					{
-						TrafficLight *trafficLight = (TrafficLight *)eventCauseNode;
+						TrafficLight* trafficLight = (TrafficLight*)eventCauseNode;
 
 						if (trafficLight->requestGreen(this, time))
 						{
@@ -156,7 +167,7 @@ void Tram::generateNextEvent(float time)
 			{
 				if (eventCause == trafficLight)
 				{
-					TrafficLight *trafficLight = (TrafficLight *)eventCauseNode;
+					TrafficLight* trafficLight = (TrafficLight*)eventCauseNode;
 
 					if (!m_requestedGreenLight)
 					{
@@ -210,7 +221,7 @@ void Tram::generateNextEvent(float time)
 	m_simulation->addEvent(nextEvent);
 }
 
-Event *Tram::addIntermediateEvents(Event *mainEvent, float mainEventPosition, float time, Node *eventCauseNode)
+Event* Tram::addIntermediateEvents(Event* mainEvent, float mainEventPosition, float time, Node* eventCauseNode)
 {
 	if (m_currentEdge->getLength() < mainEventPosition && m_currentEdge->getHead() != eventCauseNode)
 	{
@@ -228,7 +239,7 @@ Event *Tram::addIntermediateEvents(Event *mainEvent, float mainEventPosition, fl
 			timeToReachEdge = (m_currentEdge->getLength() - m_position) / m_speed;
 		}
 		auto firstEvent = new EventEnterNewEdge(this, time + timeToReachEdge);
-		EventEnterNewEdge *lastEvent = firstEvent;
+		EventEnterNewEdge* lastEvent = firstEvent;
 
 		float totalLength = m_currentEdge->getLength() + m_edgesToVisit.front()->getLength();
 		auto it = m_edgesToVisit.begin();
@@ -297,7 +308,7 @@ float Tram::getNextTrafficLightPosition()
 
 	auto it = m_edgesToVisit.begin();
 
-	while ((*it)->getHead() != (Node *)m_trafficLightsToVisit.front())
+	while ((*it)->getHead() != (Node*)m_trafficLightsToVisit.front())
 	{
 		auto edge = (*it);
 		position += (*it)->getLength();
@@ -310,7 +321,7 @@ float Tram::getNextTrafficLightPosition()
 
 float Tram::getNextTramPosition(float limit)
 {
-	Tram *tramAhead = m_currentEdge->getTramAhead(this);
+	Tram* tramAhead = m_currentEdge->getTramAhead(this);
 	if (tramAhead != nullptr)
 		return tramAhead->getPosition();
 	else
@@ -334,9 +345,9 @@ float Tram::getNextTramPosition(float limit)
 	}
 }
 
-Tram *Tram::getTramAhead(float limit)
+Tram* Tram::getTramAhead(float limit)
 {
-	Tram *tramAhead = m_currentEdge->getTramAhead(this);
+	Tram* tramAhead = m_currentEdge->getTramAhead(this);
 	if (tramAhead != nullptr)
 		return tramAhead;
 	else
@@ -378,7 +389,7 @@ void Tram::enterNextEdge(float time)
 	}
 	else if (m_currentEdge->getTail()->isTrafficLight())
 	{
-		m_currentJunction = ((TrafficLight *)m_currentEdge->getTail())->getJunction();
+		m_currentJunction = ((TrafficLight*)m_currentEdge->getTail())->getJunction();
 	}
 
 	m_x0 = 0;
@@ -392,7 +403,7 @@ void Tram::beginPassengerExchange(float time)
 {
 	m_speed = 0.0;
 	changeState(exchangingPassangers, time);
-	calculateRouteEdge();
+	calculatePassengerEdge();
 
 	auto tramStop = m_stopsToVisit.front();
 
@@ -407,8 +418,8 @@ void Tram::beginPassengerExchange(float time)
 
 void Tram::updatePassengerExchange(float time)
 {
-	auto node = m_stopsToVisit.front()->m_routeNode;
-	Event *event;
+	auto node = m_stopsToVisit.front()->m_passengerNode;
+	Event* event;
 	if (m_exitingPassengers.size() > 0)
 	{
 		auto passenger = m_exitingPassengers.front();
@@ -421,9 +432,9 @@ void Tram::updatePassengerExchange(float time)
 	}
 	else
 	{
-		Passenger *passenger = nullptr;
-		if (m_currentRouteEdge && node->getPassengerCount(m_currentRouteEdge) > 0)
-			passenger = node->dispensePassenger(time, m_currentRouteEdge);
+		Passenger* passenger = nullptr;
+		if (m_currentPassengerEdge && node->getPassengerCount(m_currentPassengerEdge) > 0)
+			passenger = node->dispensePassenger(time, m_currentPassengerEdge);
 		if (passenger && m_passengers.size() < c_passengerCapacity)
 		{
 			passenger->enterTram(time, this);
@@ -453,7 +464,7 @@ void Tram::updatePassengerExchange(float time)
 	setNextEvent(event);
 }
 
-void Tram::requestPassengerExit(Passenger *passenger)
+void Tram::requestPassengerExit(Passenger* passenger)
 {
 	m_exitingPassengers.push_back(passenger);
 }
@@ -617,12 +628,12 @@ float Tram::getLength()
 	return c_length;
 }
 
-Edge *Tram::getCurrentEdge()
+Edge* Tram::getCurrentEdge()
 {
 	return m_currentEdge;
 }
 
-std::list<TramStop *> Tram::getStopsToVisit()
+std::list<TramStop*> Tram::getStopsToVisit()
 {
 	return m_stopsToVisit;
 }
@@ -638,55 +649,55 @@ int Tram::getRoute()
 	return m_route;
 }
 
-void Tram::calculateRouteEdge()
+void Tram::calculatePassengerEdge()
 {
 	if (m_stopsToVisit.size() < 2) {
-		m_currentRouteEdge = nullptr;
+		m_currentPassengerEdge = nullptr;
 		return;
 	}
-	auto node = m_stopsToVisit.front()->m_routeNode;
-	auto edges = m_stopsToVisit.front()->m_routeNode->getOutgoingEdges();
+	auto node = m_stopsToVisit.front()->m_passengerNode;
+	auto edges = m_stopsToVisit.front()->m_passengerNode->getOutgoingEdges();
 
 	auto it = m_stopsToVisit.begin();
 	it++;
-	auto nextNode = (*it)->m_routeNode;
+	auto nextNode = (*it)->m_passengerNode;
 
 	for (auto edge : edges)
 	{
 		if (edge->getHead() == nextNode)
 		{
-			m_currentRouteEdge = edge;
+			m_currentPassengerEdge = edge;
 			return;
 		}
 	}
 }
 
-RouteEdge *Tram::getRouteEdge()
+PassengerEdge* Tram::getPassengerEdge()
 {
-	return m_currentRouteEdge;
+	return m_currentPassengerEdge;
 }
 
-void Tram::setCurrentEdge(Edge *currentEdge)
+void Tram::setCurrentEdge(Edge* currentEdge)
 {
 	m_currentEdge = currentEdge;
 }
 
-void Tram::setWaitingTram(Tram *waitingTram)
+void Tram::setWaitingTram(Tram* waitingTram)
 {
 	m_waitingTram = waitingTram;
 }
 
-void Tram::setEdgesToVisit(std::list<Edge *> edgesToVisit)
+void Tram::setEdgesToVisit(std::list<Edge*> edgesToVisit)
 {
 	m_edgesToVisit = edgesToVisit;
 }
 
-void Tram::setStopsToVisit(std::list<TramStop *> nodesToVisit)
+void Tram::setStopsToVisit(std::list<TramStop*> nodesToVisit)
 {
 	m_stopsToVisit = nodesToVisit;
 }
 
-void Tram::setTrafficLightsToVisit(std::list<TrafficLight *> trafficLightsToVisit)
+void Tram::setTrafficLightsToVisit(std::list<TrafficLight*> trafficLightsToVisit)
 {
 	m_trafficLightsToVisit = trafficLightsToVisit;
 }
@@ -759,7 +770,7 @@ json Tram::getHistory()
 
 //////////////////////////////////////////////////////////////////////////
 
-TramCollisionException::TramCollisionException(Tram *tram, Tram *tramAhead)
+TramCollisionException::TramCollisionException(Tram* tram, Tram* tramAhead)
 {
 	m_msg = "Tram collision exception. Tram " + std::to_string(tram->getId()) + " hit into " + std::to_string(tramAhead->getId()) + ".";
 }

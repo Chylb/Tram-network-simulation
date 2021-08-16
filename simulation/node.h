@@ -11,8 +11,8 @@ class Node
 public:
 	Node(int id, bool isTrafficLight, bool isJunctionExit, bool isTramStop);
 	Node(int id);
-	void addOutgoingEdge(Edge *edge);
-	void addIncomingEdge(Edge *edge);
+	void addOutgoingEdge(Edge* edge);
+	void addIncomingEdge(Edge* edge);
 	int getId();
 	bool isTrafficLight();
 	bool isJunctionExit();
@@ -24,6 +24,6 @@ protected:
 	bool m_isTrafficLight;
 	bool m_isTramStop;
 	bool m_isJunctionExit;
-	std::list<Edge *> m_outgoingEdges;
-	std::list<Edge *> m_incomingEdges;
+	std::list<Edge*> m_outgoingEdges;
+	std::list<Edge*> m_incomingEdges;
 };

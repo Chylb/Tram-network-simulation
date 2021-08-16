@@ -29,8 +29,8 @@ module.exports = {
             junctions: [],
             routes: [],
             trips: [],
-            routeNodes: [],
-            routeEdges: [],
+            passengerNodes: [],
+            passengerEdges: [],
             passengerCount: 0
         };
 
@@ -91,21 +91,21 @@ module.exports = {
             networkModel.trips.push(export_trip);
         }
 
-        for (let routeNode of logicalNetwork.routeNodes.values()) {
-            const export_routeNode = {
+        for (let routeNode of logicalNetwork.passengerNodes.values()) {
+            const export_passengerNode = {
                 name: routeNode.name,
                 generationDistribution: routeNode.properties.generationDistribution,
                 absorptionRate: routeNode.properties.absorptionRate,
                 expectedGeneratedCount: routeNode.properties.expectedGeneratedCount
             };
-            networkModel.routeNodes.push(export_routeNode);
+            networkModel.passengerNodes.push(export_passengerNode);
         }
 
-        networkModel.routeEdges = [...logicalNetwork.routeEdges.values()];
+        networkModel.passengerEdges = [...logicalNetwork.passengerEdges.values()];
 
         let passengerCount = 0;
-        for (let routeNode of networkModel.routeNodes) {
-            passengerCount += routeNode.expectedGeneratedCount;
+        for (let passengerNode of networkModel.passengerNodes) {
+            passengerCount += passengerNode.expectedGeneratedCount;
         }
         networkModel.passengerCount = passengerCount;
 

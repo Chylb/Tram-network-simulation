@@ -2,7 +2,7 @@
 
 #include "tram.h"
 
-Edge::Edge(int id, Node *tail, Node *head, float length, float maxspeed)
+Edge::Edge(int id, Node* tail, Node* head, float length, float maxspeed)
 {
 	m_id = id;
 	m_tail = tail;
@@ -11,17 +11,17 @@ Edge::Edge(int id, Node *tail, Node *head, float length, float maxspeed)
 	m_maxspeed = maxspeed;
 }
 
-Node *Edge::getHead()
+Node* Edge::getHead()
 {
 	return m_head;
 }
 
-Node *Edge::getTail()
+Node* Edge::getTail()
 {
 	return m_tail;
 }
 
-void Edge::addTram(Tram *tram)
+void Edge::addTram(Tram* tram)
 {
 	if (m_trams.size() != 0)
 		m_nextTram[tram] = m_trams.front();
@@ -48,16 +48,16 @@ float Edge::getLength()
 	return m_length;
 }
 
-std::list<Tram *> Edge::getTrams()
+std::list<Tram*> Edge::getTrams()
 {
 	return m_trams;
 }
 
-Tram *Edge::getTramAhead(Tram *tram)
+Tram* Edge::getTramAhead(Tram* tram)
 {
 	return m_nextTram[tram];
 }
 
-int Edge::getId(){
+int Edge::getId() {
 	return m_id;
 }

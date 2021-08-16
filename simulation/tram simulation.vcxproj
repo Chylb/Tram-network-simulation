@@ -196,8 +196,8 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="node.cpp" />
     <ClCompile Include="passenger.cpp" />
-    <ClCompile Include="routeEdge.cpp" />
-    <ClCompile Include="routeNode.cpp" />
+    <ClCompile Include="passengerEdge.cpp" />
+    <ClCompile Include="passengerNode.cpp" />
     <ClCompile Include="simulation.cpp" />
     <ClCompile Include="tools\timer.hpp" />
     <ClCompile Include="trafficLight.cpp" />
@@ -210,11 +210,11 @@
     <ClInclude Include="graph.h" />
     <ClInclude Include="include\json.hpp" />
     <ClInclude Include="junction.h" />
-    <ClInclude Include="MultilineQueue.hpp" />
+    <ClInclude Include="tools\MultilineQueue.hpp" />
     <ClInclude Include="node.h" />
     <ClInclude Include="passenger.h" />
-    <ClInclude Include="routeEdge.h" />
-    <ClInclude Include="routeNode.h" />
+    <ClInclude Include="passengerEdge.h" />
+    <ClInclude Include="passengerNode.h" />
     <ClInclude Include="simulation.h" />
     <ClInclude Include="trafficLight.h" />
     <ClInclude Include="tram.h" />

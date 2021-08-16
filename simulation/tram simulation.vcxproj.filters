@@ -36,10 +36,10 @@
     <ClCompile Include="passenger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="routeEdge.cpp">
+    <ClCompile Include="passengerEdge.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="routeNode.cpp">
+    <ClCompile Include="passengerNode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="simulation.cpp">
@@ -77,10 +77,10 @@
     <ClInclude Include="passenger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="routeEdge.h">
+    <ClInclude Include="passengerEdge.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="routeNode.h">
+    <ClInclude Include="passengerNode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="simulation.h">
@@ -98,7 +98,7 @@
     <ClInclude Include="include\json.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="MultilineQueue.hpp">
+    <ClInclude Include="tools\MultilineQueue.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

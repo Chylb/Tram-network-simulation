@@ -2,13 +2,13 @@
 
 #include "node.h"
 
-class RouteNode;
+class PassengerNode;
 class Tram;
 
 class TramStop : public Node
 {
 public:
-    TramStop(int id, RouteNode *routeNode);
+	TramStop(int id, PassengerNode* passengerNode);
 
-    RouteNode *const m_routeNode;
+	PassengerNode* const m_passengerNode;
 };

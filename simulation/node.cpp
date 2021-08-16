@@ -16,12 +16,12 @@ Node::Node(int id)
 	m_isTramStop = false;
 }
 
-void Node::addOutgoingEdge(Edge *edge)
+void Node::addOutgoingEdge(Edge* edge)
 {
 	m_outgoingEdges.emplace_back(edge);
 }
 
-void Node::addIncomingEdge(Edge *edge)
+void Node::addIncomingEdge(Edge* edge)
 {
 	m_incomingEdges.emplace_back(edge);
 }

@@ -1,23 +1,23 @@
 #include "graph.h"
 
 #include "tram.h"
-#include "routeNode.h"
-#include "routeEdge.h"
+#include "PassengerNode.h"
+#include "PassengerEdge.h"
 
 #include <queue>
 
-std::pair<std::list<Edge *>, std::list<TrafficLight *>> Graph::findTramPath(Node *source, Node *target)
+std::pair<std::list<Edge*>, std::list<TrafficLight*>> Graph::findTramPath(Node* source, Node* target)
 {
-	typedef std::pair<Node *, float> nodeDistancePair;
+	typedef std::pair<Node*, float> nodeDistancePair;
 
 	struct CompareNodeDistance
 	{
-		bool operator()(nodeDistancePair const &p1, nodeDistancePair const &p2) { return p1.second > p2.second; }
+		bool operator()(nodeDistancePair const& p1, nodeDistancePair const& p2) { return p1.second > p2.second; }
 	};
 
 	std::priority_queue<nodeDistancePair, std::vector<nodeDistancePair>, CompareNodeDistance> queue;
-	std::unordered_map<Node *, Edge *> previous;
-	std::unordered_map<Node *, float> distance;
+	std::unordered_map<Node*, Edge*> previous;
+	std::unordered_map<Node*, float> distance;
 
 	distance[source] = 0;
 
@@ -47,8 +47,8 @@ std::pair<std::list<Edge *>, std::list<TrafficLight *>> Graph::findTramPath(Node
 		queue.pop();
 	}
 
-	std::list<TrafficLight *> trafficLights;
-	std::list<Edge *> path;
+	std::list<TrafficLight*> trafficLights;
+	std::list<Edge*> path;
 
 	if (target->getId() == 36)
 	{
@@ -63,18 +63,18 @@ std::pair<std::list<Edge *>, std::list<TrafficLight *>> Graph::findTramPath(Node
 		path.push_front(edge);
 
 		if (edge->m_head->isTrafficLight())
-			trafficLights.push_front((TrafficLight *)edge->m_head);
+			trafficLights.push_front((TrafficLight*)edge->m_head);
 	}
 
 	return std::make_pair(path, trafficLights);
 }
 
-std::unordered_map<RouteNode *, std::list<RouteEdge *>> Graph::findPassengerPath(RouteNode *source, RouteNode *target)
+std::unordered_map<PassengerNode*, std::list<PassengerEdge*>> Graph::findPassengerPath(PassengerNode* source, PassengerNode* target)
 {
-	std::unordered_map<RouteNode *, RouteEdge *> previous;
-	std::list<RouteNode *> toVisit;
+	std::unordered_map<PassengerNode*, PassengerEdge*> previous;
+	std::list<PassengerNode*> toVisit;
 
-	std::unordered_map<RouteNode *, std::list<RouteEdge *>> result;
+	std::unordered_map<PassengerNode*, std::list<PassengerEdge*>> result;
 
 	for (auto e : source->m_outgoingEdges)
 	{
@@ -105,7 +105,7 @@ std::unordered_map<RouteNode *, std::list<RouteEdge *>> Graph::findPassengerPath
 		toVisit.pop_front();
 	}
 
-	std::list<RouteEdge *> path;
+	std::list<PassengerEdge*> path;
 
 	auto edge = previous[target];
 	path.push_front(edge);
@@ -119,7 +119,7 @@ std::unordered_map<RouteNode *, std::list<RouteEdge *>> Graph::findPassengerPath
 	{
 		auto it = result.find(e->m_tail);
 		if (it == result.end())
-			result[e->m_tail] = {e};
+			result[e->m_tail] = { e };
 		else
 			it->second.push_back(e);
 	}
@@ -127,16 +127,16 @@ std::unordered_map<RouteNode *, std::list<RouteEdge *>> Graph::findPassengerPath
 	return result;
 }
 
-float Graph::nearestTramBehindDistance(Node *start, float limit)
+float Graph::nearestTramBehindDistance(Node* start, float limit)
 {
-	std::list<Edge *> toVisit;
-	std::map<Node *, float> distance;
+	std::list<Edge*> toVisit;
+	std::map<Node*, float> distance;
 	distance[start] = 0.0;
 
 	for (auto edge : start->m_incomingEdges)
 		toVisit.push_back(edge);
 
-	Edge *edge;
+	Edge* edge;
 	while (toVisit.size() > 0)
 	{
 		edge = toVisit.front();
